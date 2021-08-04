@@ -56,3 +56,6 @@ class BadStateError(Exception):
 
 class SignatureFailError(Exception):
     pass
+
+class TxInvalidError(Exception):
+    pass

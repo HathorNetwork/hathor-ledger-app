@@ -1,39 +1,23 @@
-from hashlib import sha256
-from sha3 import keccak_256
-
-from ecdsa.curves import SECP256k1
-from ecdsa.keys import VerifyingKey
-from ecdsa.util import sigdecode_der
-
-from boilerplate_client.transaction import Transaction
+from app_client.transaction import *
 
 
 def test_sign_tx(cmd, button):
-    bip32_path: str = "m/44'/0'/0'/0/0"
+    bip32_path: str = "m/44'/280'/0'/0/0"
 
-    pub_key, chain_code = cmd.get_public_key(
-        bip32_path=bip32_path,
-        display=False
-    )  # type: bytes, bytes
+    script = b''.join([
+        b'\x76\xa9\x14',
+        b'\xca\xfe'*10,
+        b'\x88\xac'
+    ])
 
-    pk: VerifyingKey = VerifyingKey.from_string(
-        pub_key,
-        curve=SECP256k1,
-        hashfunc=sha256
-    )
+    inputs = [TxInput(b'\x00'*32, 0, bip32_path)]
+    outputs = [TxOutput(100, script)]
+    tokens = [b'\x00'*32]
 
-    tx = Transaction(
-        nonce=1,
-        to="0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae",
-        value=666,
-        memo="For u EthDev"
-    )
+    tx = Transaction(1, tokens, inputs, outputs)
 
-    v, der_sig = cmd.sign_tx(bip32_path=bip32_path,
+    signatures = cmd.sign_tx(button=button,
                              transaction=tx,
-                             button=button)
+                             has_change=False)
 
-    assert pk.verify(signature=der_sig,
-                     data=tx.serialize(),
-                     hashfunc=keccak_256,
-                     sigdecode=sigdecode_der) is True
+    assert len(signatures) == 1
