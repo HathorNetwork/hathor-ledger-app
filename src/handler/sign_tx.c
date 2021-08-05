@@ -142,7 +142,12 @@ void sighash_all_hash(buffer_t *cdata) {
  * If sighash_all is empty it means that we need to sha256d the given data to initialize it
  **/
 bool sign_tx_with_key() {
-    // the bip32 path and bip32 path length should be on the global context when calling this method.
+    // the bip32 path should already be initialized when calling this method.
+
+    if (G_context.bip32_path.length == 0 || G_context.bip32_path.length == NULL ||
+        G_context.bip32_path.path == NULL) {
+        return io_send_sw(SW_SIGNATURE_FAIL) > 0;
+    }
 
     cx_ecfp_private_key_t private_key = {0};
     cx_ecfp_public_key_t public_key = {0};
@@ -208,53 +213,68 @@ bool _decode_elements() {
     // if there are, try to read from buffer
     // if any are incomplete, inform caller to send more data 
     if (G_context.tx_info.remaining_tokens > 0) {
-        // can read token?
+        // Here we read the token UIDs, no validation or confirmation to be done.
+        // After reading 32 bytes of data, we can safely ignore the token.
+        // Can read token? if not, request more data.
         if (G_context.tx_info.buffer_len < TOKEN_UID_LEN) {
-            // still decoding tokens, but this one was divided between calls 
+            // still decoding tokens, but this one was divided between calls
             THROW(TX_STATE_READY);
         }
-        // for now we ignore it
+        // Safely discard data
         G_context.tx_info.remaining_tokens--;
         G_context.tx_info.buffer_len -= TOKEN_UID_LEN;
         // G_context.tx_info.elem_type = ELEM_TOKEN_UID;
         memmove(G_context.tx_info.buffer, G_context.tx_info.buffer + TOKEN_UID_LEN, G_context.tx_info.buffer_len);
     } else if(G_context.tx_info.remaining_inputs > 0) {
-        // can read input?
+        // Since we are using this input serialization to sign the transaction, we must have data_len == 0
+        // So we have 32 bytes of TX id + 1 byte of index + 2 bytes of data length = 35 bytes
+        // After confirming that the data_len is 0, we can safely ignore.
+        // can read input? if not, request more data
         if (G_context.tx_info.buffer_len < TX_INPUT_LEN) {
             THROW(TX_STATE_READY);
         }
-        // we require input to have no data, since we are signing all data received (sighash_all must have no data)
-        // other than this check, we can ignore the input
+        // Check data_len
         uint16_t input_data_len = read_u16_be(G_context.tx_info.buffer, 33);
         if (input_data_len > 0) {
             THROW(TX_STATE_ERR);
         }
 
-        // reading input
+        // Safely discard data
         G_context.tx_info.remaining_inputs--;
         G_context.tx_info.buffer_len -= TX_INPUT_LEN;
         // G_context.tx_info.elem_type = ELEM_INPUT;
         memmove(G_context.tx_info.buffer, G_context.tx_info.buffer + TX_INPUT_LEN, G_context.tx_info.buffer_len);
     } else if (G_context.tx_info.current_output < G_context.tx_info.outputs_len) {
+        // Here, we have already read all tokens and inputs, now we will read the output bytes
+        // User confirmation of the information here is required, so we shall parse the data
+        // and save it for the UI functions to read later.
         tx_output_t output = {0};
 
-        // read output
+        // read output (function is responsible to THROW if more data is required to parse the output)
         size_t output_len = parse_output(
             G_context.tx_info.buffer,
             G_context.tx_info.buffer_len,
             &output);
 
+        // set output index and prepare for next parse
         output.index = G_context.tx_info.current_output++;
         // G_context.tx_info.elem_type = ELEM_OUTPUT;
 
+        // If this output was a change output, we require extra validation
         if (G_context.tx_info.has_change_output && G_context.tx_info.change_output_index == output.index) {
             if (!verify_address(output, G_context.tx_info.change_bip32_path)) {
                 THROW(TX_STATE_ERR);
             }
         }
-        // move buffer
+        // We have already read and parsed the output, move the buffer so we can parse the next one
         G_context.tx_info.buffer_len -= output_len;
         memmove(G_context.tx_info.buffer, G_context.tx_info.buffer + output_len, G_context.tx_info.buffer_len);
+        // Save the output on the global context for user confirmation
+        output_len = sizeof(G_context.tx_info.outputs) / sizeof(G_context.tx_info.outputs[0]);
+        if (G_context.tx_info.buffer_output_index >= output_len) {
+            // prevent overflow
+            THROW(TX_STATE_ERR);
+        }
         G_context.tx_info.outputs[G_context.tx_info.buffer_output_index++] =  output;
     } else {
         // We've reached the end of what we should read but the buffer isn't empty

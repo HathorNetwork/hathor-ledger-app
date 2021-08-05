@@ -16,7 +16,7 @@
  * XXX: considering only P2PKH, without timelock
  * Validates that a script has the format of P2PKH. Throws an exception if doesn't.
  * P2PKH scripts have the format:
- *   [OP_DUP, OP_HASH160, pubkey_hash_len, pubkey_hash, OP_EQUALVERIFY, OP_CHECKSIG]
+ *   [OP_DUP(1), OP_HASH160(1), pubkey_hash_len(1), pubkey_hash(20), OP_EQUALVERIFY(1), OP_CHECKSIG(1)]
  */
 void validate_p2pkh_script(buffer_t *in, size_t script_len) {
     uint8_t p2pkh[] = {OP_DUP, OP_HASH160, PUBKEY_HASH_LEN, OP_EQUALVERIFY, OP_CHECKSIG};

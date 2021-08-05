@@ -31,7 +31,6 @@ typedef enum {
 typedef struct {
     uint8_t index;
     uint64_t value;
-    // hash160 of pubkey
     uint8_t token_data;
-    uint8_t pubkey_hash[PUBKEY_HASH_LEN];
+    uint8_t pubkey_hash[PUBKEY_HASH_LEN];  // hash160 of pubkey
 } tx_output_t;
