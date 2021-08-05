@@ -10,7 +10,7 @@
  * 0  - MAX_DERIVATION_INDEX
  * 0' - MAX_DERIVATION_INDEX'
  */
-#define MAX_DERIVATION_INDEX 512
+#define MAX_DERIVATION_INDEX 0x100000u
 
 /**
  * Maximum length of BIP32 path allowed.
