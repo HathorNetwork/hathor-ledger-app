@@ -144,8 +144,7 @@ void sighash_all_hash(buffer_t *cdata) {
 bool sign_tx_with_key() {
     // the bip32 path should already be initialized when calling this method.
 
-    if (G_context.bip32_path.length == 0 || G_context.bip32_path.length == NULL ||
-        G_context.bip32_path.path == NULL) {
+    if (G_context.bip32_path.length == 0 || G_context.bip32_path.path == (uint32_t*) NULL) {
         return io_send_sw(SW_SIGNATURE_FAIL) > 0;
     }
 
