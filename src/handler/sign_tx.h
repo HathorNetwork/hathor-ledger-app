@@ -3,8 +3,8 @@
 #include <stdint.h>   // uint*_t
 #include <stdbool.h>  // bool
 
+#include "../types.h"
 #include "../common/buffer.h"
-#include "types.h"
 
 /**
  * Handler for SIGN_TX command.
