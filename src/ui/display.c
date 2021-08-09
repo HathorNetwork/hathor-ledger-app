@@ -26,10 +26,9 @@ static char g_bip32_path[60];
 static char g_output_index[10];
 static char g_address[B58_ADDRESS_LEN];
 
-
 /**
  * Clean context and return to menu.
-*/
+ */
 void action_exit_to_menu() {
     explicit_bzero(&G_context, sizeof(G_context));
     ui_menu_main();
@@ -117,7 +116,7 @@ UX_FLOW(ux_display_processing, &ux_display_processing_step, &ux_sendtx_exit_step
  *
  * @param[in]  choice
  *   A boolean representing wether the user confirmed or not.
-*/
+ */
 void ui_action_tx_confirm(bool choice) {
     if (choice) {
         G_context.state = STATE_APPROVED;
@@ -149,7 +148,7 @@ int ui_display_tx_confirm() {
         io_send_sw(SW_BAD_STATE);
         ui_menu_main();
     } else {
-        g_validate_callback = &ui_action_tx_confirm; // set state_approved and send sw_ok
+        g_validate_callback = &ui_action_tx_confirm;  // set state_approved and send sw_ok
         ux_flow_init(0, ux_display_confirm_tx_flow, NULL);
     }
 
@@ -158,19 +157,19 @@ int ui_display_tx_confirm() {
 
 // SIGN_TX: confirm output
 UX_FLOW(ux_display_tx_output_flow,
-        &ux_display_review_output_step, // Output <curr>/<total>
-        &ux_display_address_step,       // address
-        &ux_display_amount_step,        // HTR <value>
-        &ux_display_approve_step,       // accept => decode next component and redisplay if needed
-        &ux_display_reject_step,        // reject => return error
+        &ux_display_review_output_step,  // Output <curr>/<total>
+        &ux_display_address_step,        // address
+        &ux_display_amount_step,         // HTR <value>
+        &ux_display_approve_step,        // accept => decode next component and redisplay if needed
+        &ux_display_reject_step,         // reject => return error
         FLOW_LOOP);
 
 /**
  * Prepare the UX screen values of the current output to confirm
-*/
+ */
 void prepare_display_output() {
-
-    if (G_context.tx_info.has_change_output && G_context.tx_info.confirmed_outputs == G_context.tx_info.change_output_index) {
+    if (G_context.tx_info.has_change_output &&
+        G_context.tx_info.confirmed_outputs == G_context.tx_info.change_output_index) {
         G_context.tx_info.display_index++;
         G_context.tx_info.confirmed_outputs++;
     }
@@ -189,7 +188,7 @@ void prepare_display_output() {
     itoa(fake_output_index, g_output_index, 10);
     uint8_t len = strlen(g_output_index);
     g_output_index[len++] = '/';
-    itoa(total_outputs, g_output_index+len, 10);
+    itoa(total_outputs, g_output_index + len, 10);
 
     // set g_address
     memset(g_address, 0, sizeof(g_address));
@@ -202,14 +201,15 @@ void prepare_display_output() {
     // set g_ammount (HTR value)
     memset(g_amount, 0, sizeof(g_amount));
     strcpy(g_amount, "HTR ");
-    format_fpu64(g_amount+4, sizeof(g_amount)-5, output.value, 2);
+    format_fpu64(g_amount + 4, sizeof(g_amount) - 5, output.value, 2);
 }
 
 void ui_confirm_output(bool choice) {
     if (choice) {
         G_context.tx_info.display_index++;
         G_context.tx_info.confirmed_outputs++;
-        if (G_context.tx_info.has_change_output && G_context.tx_info.confirmed_outputs == G_context.tx_info.change_output_index) {
+        if (G_context.tx_info.has_change_output &&
+            G_context.tx_info.confirmed_outputs == G_context.tx_info.change_output_index) {
             G_context.tx_info.display_index++;
             G_context.tx_info.confirmed_outputs++;
         }
@@ -237,7 +237,7 @@ void ui_confirm_output(bool choice) {
 
 int ui_display_tx_outputs() {
     prepare_display_output();
-    g_validate_callback = &ui_confirm_output; // show next until need more
+    g_validate_callback = &ui_confirm_output;  // show next until need more
     ux_flow_init(0, ux_display_tx_output_flow, NULL);
 
     return 0;
@@ -273,7 +273,7 @@ int ui_display_xpub_confirm() {
         return io_send_sw(SW_DISPLAY_BIP32_PATH_FAIL);
     }
 
-    g_validate_callback = &ui_action_confirm_xpub; // send xpub from bip32 path
+    g_validate_callback = &ui_action_confirm_xpub;  // send xpub from bip32 path
 
     ux_flow_init(0, ux_display_xpub_flow, NULL);
 
@@ -321,7 +321,10 @@ int ui_display_confirm_address() {
     char b58address[B58_ADDRESS_LEN] = {0};
 
     // derive for bip32 path
-    derive_private_key(&private_key, chain_code, G_context.bip32_path.path, G_context.bip32_path.length);
+    derive_private_key(&private_key,
+                       chain_code,
+                       G_context.bip32_path.path,
+                       G_context.bip32_path.length);
     init_public_key(&private_key, &public_key);
 
     // Generate address from public key

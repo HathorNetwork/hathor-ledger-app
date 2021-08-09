@@ -100,9 +100,7 @@ bool buffer_read_u64(buffer_t *buffer, uint64_t *value, endianness_t endianness)
 }
 
 bool buffer_read_bip32_path(buffer_t *buffer, bip32_path_t *out) {
-    if (!bip32_path_read(buffer->ptr + buffer->offset,
-                         buffer->size - buffer->offset,
-                         out)) {
+    if (!bip32_path_read(buffer->ptr + buffer->offset, buffer->size - buffer->offset, out)) {
         return false;
     }
 

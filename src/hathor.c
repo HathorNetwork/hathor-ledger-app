@@ -11,7 +11,7 @@
 // #include "transaction/types.h"
 
 // Path prefix of 44'/280'
-const uint32_t htr_bip44[] = { 44 | 0x80000000, HATHOR_BIP44_CODE | 0x80000000 };
+const uint32_t htr_bip44[] = {44 | 0x80000000, HATHOR_BIP44_CODE | 0x80000000};
 
 void sha256d(uint8_t *in, size_t inlen, uint8_t *out) {
     cx_sha256_t hash;
@@ -46,11 +46,11 @@ void address_from_pubkey_hash(const uint8_t *public_key_hash, uint8_t *out) {
     uint8_t buffer[32] = {0};
     // prepend version
     out[0] = P2PKH_VERSION_BYTE;
-    memmove(out+1, public_key_hash, PUBKEY_HASH_LEN);
+    memmove(out + 1, public_key_hash, PUBKEY_HASH_LEN);
     // sha256d of above
     sha256d(out, 21, buffer);
     // grab first 4 bytes (checksum)
-    memmove(out+21, buffer, 4);
+    memmove(out + 21, buffer, 4);
 }
 
 void address_from_pubkey(cx_ecfp_public_key_t *public_key, uint8_t *out) {

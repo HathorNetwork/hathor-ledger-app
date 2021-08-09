@@ -11,20 +11,20 @@ extern const uint32_t htr_bip44[2];
 
 /**
  * Performs the sha256d (double sha256) of the data
- * 
+ *
  * @param[in]  in
  *   Pointer to byte buffer with data.
  * @param[in]  inlen
  *   Lenght of input byte buffer.
  * @param[out] out
  *   Pointer to output byte buffer for address.
- * 
+ *
  */
 void sha256d(uint8_t *in, size_t inlen, uint8_t *out);
 
 /**
  * Performs the hash160 (sha256 + ripemd160) of the data
- * 
+ *
  * @param[in]  in
  *   Pointer to byte buffer with data.
  * @param[in]  inlen

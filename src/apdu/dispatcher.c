@@ -56,9 +56,9 @@ int apdu_dispatcher(const command_t *cmd) {
 
             return handler_get_xpub(&buf);
         case SIGN_TX:
-            if (cmd->p1 > SIGN_TX_P1_MAX ||                                     //
-                (cmd->p1 == SIGN_TX_P1_SIGN && cmd->p2 != SIGN_TX_P2_SIGN) ||   //
-                (cmd->p1 == SIGN_TX_P1_DONE && cmd->p2 != SIGN_TX_P2_DONE)) {   //
+            if (cmd->p1 > SIGN_TX_P1_MAX ||                                    //
+                (cmd->p1 == SIGN_TX_P1_SIGN && cmd->p2 != SIGN_TX_P2_SIGN) ||  //
+                (cmd->p1 == SIGN_TX_P1_DONE && cmd->p2 != SIGN_TX_P2_DONE)) {  //
                 return io_send_sw(SW_WRONG_P1P2);
             }
 
@@ -73,7 +73,6 @@ int apdu_dispatcher(const command_t *cmd) {
                 // so we will just test for existence or not of data
                 return io_send_sw(SW_WRONG_DATA_LENGTH);
             } else if (cmd->p1 == SIGN_TX_P1_DONE && cmd->data) {
-
             }
 
             return handler_sign_tx(&buf, (sing_tx_stage_e) cmd->p1, cmd->p2);

@@ -22,10 +22,10 @@ typedef enum {
  * Enumeration with expected INS of APDU commands.
  */
 typedef enum {
-    GET_VERSION = 0x03,     /// version of the application
-    GET_ADDRESS = 0x04,     /// get address from BIP32 path
-    GET_XPUB = 0x05,        /// XPUB of corresponding BIP32 path
-    SIGN_TX = 0x06          /// sign transaction with BIP32 path
+    GET_VERSION = 0x03,  /// version of the application
+    GET_ADDRESS = 0x04,  /// get address from BIP32 path
+    GET_XPUB = 0x05,     /// XPUB of corresponding BIP32 path
+    SIGN_TX = 0x06       /// sign transaction with BIP32 path
 } command_e;
 
 /**
@@ -44,10 +44,10 @@ typedef struct {
  * Enumeration with parsing state.
  */
 typedef enum {
-    STATE_NONE,      /// No state
-    STATE_RECV_DATA, /// Receiving data (for SIGN_TX)
-    STATE_PARSED,    /// Transaction data parsed
-    STATE_APPROVED   /// Transaction data approved
+    STATE_NONE,       /// No state
+    STATE_RECV_DATA,  /// Receiving data (for SIGN_TX)
+    STATE_PARSED,     /// Transaction data parsed
+    STATE_APPROVED    /// Transaction data approved
 } state_e;
 
 /**
@@ -59,7 +59,6 @@ typedef enum {
     CONFIRM_TRANSACTION  /// confirm transaction information
 } request_type_e;
 
-
 #define MAX_SCREEN_LENGTH 12
 /**
  * Structure for public key context information.
@@ -68,7 +67,7 @@ typedef struct {
     bip32_path_t key_path;
 
     uint8_t raw_public_key[65];
-    uint8_t chain_code[32];      /// for public key derivation
+    uint8_t chain_code[32];  /// for public key derivation
     uint8_t fingerprint[4];
 } xpub_ctx_t;
 
@@ -97,7 +96,7 @@ typedef struct {
     uint8_t display_index;
     uint8_t confirmed_outputs;
     uint8_t buffer_output_index;
-    tx_output_t outputs[10]; // max num of outputs on a call is 7
+    tx_output_t outputs[10];  // max num of outputs on a call is 7
     tx_output_t decoded_output;
 } sign_tx_ctx_t;
 
@@ -107,9 +106,9 @@ typedef struct {
 typedef struct {
     state_e state;  /// state of the context
     union {
-        xpub_ctx_t pk_info;       /// public key context
+        xpub_ctx_t pk_info;     /// public key context
         sign_tx_ctx_t tx_info;  /// transaction context
     };
-    request_type_e req_type;              /// user request
+    request_type_e req_type;  /// user request
     bip32_path_t bip32_path;
 } global_ctx_t;

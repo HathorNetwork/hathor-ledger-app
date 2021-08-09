@@ -152,11 +152,11 @@ void format_value(uint64_t value, char *out) {
     // 'c' is used here to control when a comma should be added
     c = 2 - strlen(buf) % 3;
     for (p = buf; *p != 0; p++) {
-       *out++ = *p;
-       if (c == 1) {
-           *out++ = ',';
-       }
-       c = (c + 1) % 3;
+        *out++ = *p;
+        if (c == 1) {
+            *out++ = ',';
+        }
+        c = (c + 1) % 3;
     }
     *--out = 0;
 
@@ -164,31 +164,34 @@ void format_value(uint64_t value, char *out) {
     tmp = value % 100;
     // reusing 'c' variable to point to the end of string, to add decimal
     // separator and possibly pad with 0
-    c = strlen((const char*)out);
+    c = strlen((const char *) out);
     out[c++] = '.';
     if (tmp < 10) {
         out[c++] = '0';
     }
-    itoa(tmp, (char*)out + c, 10);
+    itoa(tmp, (char *) out + c, 10);
 }
 
-void itoa(int value, char* result, int base) {
+void itoa(int value, char *result, int base) {
     // check that the base if valid
-    if (base < 2 || base > 36) { *result = '\0'; }
+    if (base < 2 || base > 36) {
+        *result = '\0';
+    }
 
-    char* ptr = result, *ptr1 = result, tmp_char;
+    char *ptr = result, *ptr1 = result, tmp_char;
     int tmp_value;
 
     do {
         tmp_value = value;
         value /= base;
-        *ptr++ = "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz" [35 + (tmp_value - value * base)];
-    } while ( value );
+        *ptr++ = "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz"
+            [35 + (tmp_value - value * base)];
+    } while (value);
 
     // Apply negative sign
     if (tmp_value < 0) *ptr++ = '-';
     *ptr-- = '\0';
-    while(ptr1 < ptr) {
+    while (ptr1 < ptr) {
         tmp_char = *ptr;
         *ptr-- = *ptr1;
         *ptr1++ = tmp_char;

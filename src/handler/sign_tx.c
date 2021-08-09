@@ -66,29 +66,26 @@ void read_change_output_info(buffer_t *cdata) {
     G_context.tx_info.has_change_output = (tmp & 0x80) > 0 ? true : false;
 
     if (G_context.tx_info.has_change_output) {
-        uint8_t buffer[1 + 4*MAX_BIP32_PATH] = {0};
+        uint8_t buffer[1 + 4 * MAX_BIP32_PATH] = {0};
         buffer[0] = tmp & 0x0F;
         // 1 byte for change output index
         if (!buffer_read_u8(cdata, &G_context.tx_info.change_output_index)) {
             THROW(SW_WRONG_DATA_LENGTH);
         }
 
-        // the remainder of the first byte was used to represent the bip32 path length of the change path
+        // the remainder of the first byte was used to represent the bip32 path length of the change
+        // path
         if (buffer[0] > MAX_BIP32_PATH) {
             THROW(SW_WRONG_DATA_LENGTH);
         }
 
-        if (cdata->size - cdata->offset < 4*buffer[0]) {
+        if (cdata->size - cdata->offset < 4 * buffer[0]) {
             THROW(SW_WRONG_DATA_LENGTH);
         }
-        memmove(buffer+1, cdata->ptr + cdata->offset, 4 * buffer[0]);
-        buffer_seek_cur(cdata, 4*buffer[0]);
+        memmove(buffer + 1, cdata->ptr + cdata->offset, 4 * buffer[0]);
+        buffer_seek_cur(cdata, 4 * buffer[0]);
 
-        buffer_t bufdata = {
-            .ptr = buffer,
-            .size=1 + 4*MAX_BIP32_PATH,
-            .offset = 0
-        };
+        buffer_t bufdata = {.ptr = buffer, .size = 1 + 4 * MAX_BIP32_PATH, .offset = 0};
 
         // buffer holds the serialized bip32 path that was read from cdata
         if (!buffer_read_bip32_path(&bufdata, &G_context.tx_info.change_bip32_path)) {
@@ -112,10 +109,14 @@ void read_change_output_info(buffer_t *cdata) {
  * The output will be on the global context for sign tx (`tx_info`)
  **/
 void read_tx_data(buffer_t *cdata) {
-    if (!(buffer_read_u16(cdata, &G_context.tx_info.tx_version, BE) && // read version bytes (Big Endian)
-        buffer_read_u8(cdata, &G_context.tx_info.remaining_tokens) && // read number of tokens, inputs and outputs, respectively
-        buffer_read_u8(cdata, &G_context.tx_info.remaining_inputs) &&
-        buffer_read_u8(cdata, &G_context.tx_info.outputs_len))) {
+    if (!(buffer_read_u16(cdata,
+                          &G_context.tx_info.tx_version,
+                          BE) &&  // read version bytes (Big Endian)
+          buffer_read_u8(cdata,
+                         &G_context.tx_info.remaining_tokens) &&  // read number of tokens, inputs
+                                                                  // and outputs, respectively
+          buffer_read_u8(cdata, &G_context.tx_info.remaining_inputs) &&
+          buffer_read_u8(cdata, &G_context.tx_info.outputs_len))) {
         // if an error occurs reading
         THROW(SW_WRONG_DATA_LENGTH);
     }
@@ -128,12 +129,12 @@ void read_tx_data(buffer_t *cdata) {
 void sighash_all_hash(buffer_t *cdata) {
     // cx_hash returns the size of the hash after adding the data, we can safely ignore it
 
-    cx_hash(
-        &G_context.tx_info.sha256.header,   // hash context pointer
-        0,                                  // mode (supports: CX_LAST)
-        cdata->ptr + cdata->offset,         // Input data to add to current hash
-        cdata->size - cdata->offset,        // Length of input data
-        NULL, 0);                           // output (if flag CX_LAST was set)
+    cx_hash(&G_context.tx_info.sha256.header,  // hash context pointer
+            0,                                 // mode (supports: CX_LAST)
+            cdata->ptr + cdata->offset,        // Input data to add to current hash
+            cdata->size - cdata->offset,       // Length of input data
+            NULL,
+            0);  // output (if flag CX_LAST was set)
 }
 
 /**
@@ -144,7 +145,7 @@ void sighash_all_hash(buffer_t *cdata) {
 bool sign_tx_with_key() {
     // the bip32 path should already be initialized when calling this method.
 
-    if (G_context.bip32_path.length == 0 || G_context.bip32_path.path == (uint32_t*) NULL) {
+    if (G_context.bip32_path.length == 0 || G_context.bip32_path.path == (uint32_t *) NULL) {
         return io_send_sw(SW_SIGNATURE_FAIL) > 0;
     }
 
@@ -153,26 +154,47 @@ bool sign_tx_with_key() {
 
     uint8_t chain_code[32];
 
-    derive_private_key(&private_key, chain_code, G_context.bip32_path.path, G_context.bip32_path.length);
+    derive_private_key(&private_key,
+                       chain_code,
+                       G_context.bip32_path.path,
+                       G_context.bip32_path.length);
     init_public_key(&private_key, &public_key);
 
     if (G_context.tx_info.sighash_all[0] == '\0') {
         // finish sha256 from data
-        cx_hash(&G_context.tx_info.sha256.header, CX_LAST, G_context.tx_info.sighash_all, 0, G_context.tx_info.sighash_all, 32);
+        cx_hash(&G_context.tx_info.sha256.header,
+                CX_LAST,
+                G_context.tx_info.sighash_all,
+                0,
+                G_context.tx_info.sighash_all,
+                32);
         // now get second sha256
         cx_sha256_init(&G_context.tx_info.sha256);
-        cx_hash(&G_context.tx_info.sha256.header, CX_LAST, G_context.tx_info.sighash_all, 32, G_context.tx_info.sighash_all, 32);
+        cx_hash(&G_context.tx_info.sha256.header,
+                CX_LAST,
+                G_context.tx_info.sighash_all,
+                32,
+                G_context.tx_info.sighash_all,
+                32);
     }
 
     uint8_t out[256] = {0};
-    size_t sig_size = cx_ecdsa_sign(&private_key, CX_LAST | CX_RND_RFC6979, CX_SHA256, G_context.tx_info.sighash_all, 32, out, 256, NULL);
+    size_t sig_size = cx_ecdsa_sign(&private_key,
+                                    CX_LAST | CX_RND_RFC6979,
+                                    CX_SHA256,
+                                    G_context.tx_info.sighash_all,
+                                    32,
+                                    out,
+                                    256,
+                                    NULL);
 
     explicit_bzero(&private_key, sizeof(private_key));
     explicit_bzero(&public_key, sizeof(public_key));
 
     // exchange signature
     // io_send_response < 0 means faillure
-    return io_send_response(&(const buffer_t){.ptr = out, .size = sig_size, .offset = 0}, SW_OK) >= 0;
+    return io_send_response(&(const buffer_t){.ptr = out, .size = sig_size, .offset = 0}, SW_OK) >=
+           0;
 }
 
 /**
@@ -180,7 +202,7 @@ bool sign_tx_with_key() {
  **/
 void init_sign_tx_ctx() {
     explicit_bzero(&G_context, sizeof(G_context));
-    G_context.req_type = CONFIRM_TRANSACTION; /// SIGN_TX
+    G_context.req_type = CONFIRM_TRANSACTION;  /// SIGN_TX
 
     G_context.tx_info.buffer_len = 0;
     G_context.tx_info.confirmed_outputs = 0;
@@ -210,7 +232,7 @@ void init_sign_tx_ctx() {
 bool _decode_elements() {
     // test if there are more tokens, inputs and outputs in this order
     // if there are, try to read from buffer
-    // if any are incomplete, inform caller to send more data 
+    // if any are incomplete, inform caller to send more data
     if (G_context.tx_info.remaining_tokens > 0) {
         // Here we read the token UIDs, no validation or confirmation to be done.
         // After reading 32 bytes of data, we can safely ignore the token.
@@ -223,12 +245,14 @@ bool _decode_elements() {
         G_context.tx_info.remaining_tokens--;
         G_context.tx_info.buffer_len -= TOKEN_UID_LEN;
         // G_context.tx_info.elem_type = ELEM_TOKEN_UID;
-        memmove(G_context.tx_info.buffer, G_context.tx_info.buffer + TOKEN_UID_LEN, G_context.tx_info.buffer_len);
-    } else if(G_context.tx_info.remaining_inputs > 0) {
-        // Since we are using this input serialization to sign the transaction, we must have data_len == 0
-        // So we have 32 bytes of TX id + 1 byte of index + 2 bytes of data length = 35 bytes
-        // After confirming that the data_len is 0, we can safely ignore.
-        // can read input? if not, request more data
+        memmove(G_context.tx_info.buffer,
+                G_context.tx_info.buffer + TOKEN_UID_LEN,
+                G_context.tx_info.buffer_len);
+    } else if (G_context.tx_info.remaining_inputs > 0) {
+        // Since we are using this input serialization to sign the transaction, we must have
+        // data_len == 0 So we have 32 bytes of TX id + 1 byte of index + 2 bytes of data length =
+        // 35 bytes After confirming that the data_len is 0, we can safely ignore. can read input?
+        // if not, request more data
         if (G_context.tx_info.buffer_len < TX_INPUT_LEN) {
             THROW(TX_STATE_READY);
         }
@@ -242,39 +266,43 @@ bool _decode_elements() {
         G_context.tx_info.remaining_inputs--;
         G_context.tx_info.buffer_len -= TX_INPUT_LEN;
         // G_context.tx_info.elem_type = ELEM_INPUT;
-        memmove(G_context.tx_info.buffer, G_context.tx_info.buffer + TX_INPUT_LEN, G_context.tx_info.buffer_len);
+        memmove(G_context.tx_info.buffer,
+                G_context.tx_info.buffer + TX_INPUT_LEN,
+                G_context.tx_info.buffer_len);
     } else if (G_context.tx_info.current_output < G_context.tx_info.outputs_len) {
         // Here, we have already read all tokens and inputs, now we will read the output bytes
         // User confirmation of the information here is required, so we shall parse the data
         // and save it for the UI functions to read later.
         tx_output_t output = {0};
 
-        // read output (function is responsible to THROW if more data is required to parse the output)
-        size_t output_len = parse_output(
-            G_context.tx_info.buffer,
-            G_context.tx_info.buffer_len,
-            &output);
+        // read output (function is responsible to THROW if more data is required to parse the
+        // output)
+        size_t output_len =
+            parse_output(G_context.tx_info.buffer, G_context.tx_info.buffer_len, &output);
 
         // set output index and prepare for next parse
         output.index = G_context.tx_info.current_output++;
         // G_context.tx_info.elem_type = ELEM_OUTPUT;
 
         // If this output was a change output, we require extra validation
-        if (G_context.tx_info.has_change_output && G_context.tx_info.change_output_index == output.index) {
+        if (G_context.tx_info.has_change_output &&
+            G_context.tx_info.change_output_index == output.index) {
             if (!verify_address(output, G_context.tx_info.change_bip32_path)) {
                 THROW(TX_STATE_ERR);
             }
         }
         // We have already read and parsed the output, move the buffer so we can parse the next one
         G_context.tx_info.buffer_len -= output_len;
-        memmove(G_context.tx_info.buffer, G_context.tx_info.buffer + output_len, G_context.tx_info.buffer_len);
+        memmove(G_context.tx_info.buffer,
+                G_context.tx_info.buffer + output_len,
+                G_context.tx_info.buffer_len);
         // Save the output on the global context for user confirmation
         output_len = sizeof(G_context.tx_info.outputs) / sizeof(G_context.tx_info.outputs[0]);
         if (G_context.tx_info.buffer_output_index >= output_len) {
             // prevent overflow
             THROW(TX_STATE_ERR);
         }
-        G_context.tx_info.outputs[G_context.tx_info.buffer_output_index++] =  output;
+        G_context.tx_info.outputs[G_context.tx_info.buffer_output_index++] = output;
     } else {
         // We've reached the end of what we should read but the buffer isn't empty
         THROW(TX_STATE_ERR);
@@ -345,7 +373,7 @@ bool receive_data(buffer_t *cdata, uint8_t chunk) {
         sighash_all_hash(cdata);
         read_tx_data(cdata);
 
-        if(!buffer_copy(cdata, G_context.tx_info.buffer, 300 - G_context.tx_info.buffer_len)) {
+        if (!buffer_copy(cdata, G_context.tx_info.buffer, 300 - G_context.tx_info.buffer_len)) {
             THROW(SW_WRONG_DATA_LENGTH);
         }
 
@@ -356,7 +384,9 @@ bool receive_data(buffer_t *cdata, uint8_t chunk) {
         // add it to the buffer and parse the elements
         sighash_all_hash(cdata);
         // move the same data to decode buffer
-        if(!buffer_copy(cdata, G_context.tx_info.buffer + G_context.tx_info.buffer_len, 300 - G_context.tx_info.buffer_len)) {
+        if (!buffer_copy(cdata,
+                         G_context.tx_info.buffer + G_context.tx_info.buffer_len,
+                         300 - G_context.tx_info.buffer_len)) {
             THROW(SW_WRONG_DATA_LENGTH);
         }
         G_context.tx_info.buffer_len += cdata->size - cdata->offset;
@@ -412,7 +442,7 @@ int handler_sign_tx(buffer_t *cdata, sing_tx_stage_e stage, uint8_t chunk) {
             }
 
             // sign with input key and return SW_OK
-            if(!sign_tx_with_key()) return -1;
+            if (!sign_tx_with_key()) return -1;
             break;
 
         case SIGN_TX_STAGE_DATA:
@@ -430,7 +460,7 @@ int handler_sign_tx(buffer_t *cdata, sing_tx_stage_e stage, uint8_t chunk) {
                 ui_menu_main();
                 return io_send_sw(SW_BAD_STATE);
             }
-            if(!receive_data(cdata, chunk)) return -1;
+            if (!receive_data(cdata, chunk)) return -1;
             break;
 
         default:

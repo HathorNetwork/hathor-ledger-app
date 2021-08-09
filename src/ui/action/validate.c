@@ -7,7 +7,6 @@
 #include "../../globals.h"
 #include "../../helper/send_response.h"
 
-
 void ui_action_confirm_xpub(bool choice) {
     if (choice) {
         helper_send_response_xpub();
