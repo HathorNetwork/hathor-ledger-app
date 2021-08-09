@@ -15,5 +15,5 @@
 
 /**
  * Senx xpub data from the public key derived by the app.
-*/
+ */
 int helper_send_response_xpub(void);

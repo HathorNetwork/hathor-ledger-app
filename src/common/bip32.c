@@ -8,7 +8,7 @@
 #include "read.h"
 
 bool bip32_path_read(const uint8_t *in, size_t in_len, bip32_path_t *out) {
-    if (in_len < 1 || in[0] > MAX_BIP32_PATH || in[0] * 4 + 1 > in_len ) {
+    if (in_len < 1 || in[0] > MAX_BIP32_PATH || in[0] * 4 + 1 > in_len) {
         return false;
     }
     size_t offset = 0;

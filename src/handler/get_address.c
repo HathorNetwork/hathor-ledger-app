@@ -15,7 +15,10 @@ void derive_address() {
     uint8_t chain_code[32];
 
     // derive for bip32 path
-    derive_private_key(&private_key, chain_code, G_context.bip32_path.path, G_context.bip32_path.length);
+    derive_private_key(&private_key,
+                       chain_code,
+                       G_context.bip32_path.path,
+                       G_context.bip32_path.length);
     init_public_key(&private_key, &public_key);
 
     memmove(G_context.pk_info.raw_public_key, public_key.W, public_key.W_len);

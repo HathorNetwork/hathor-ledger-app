@@ -1,9 +1,9 @@
 #ifndef TRANSACTION_DESERIALIZE_H
 #define TRANSACTION_DESERIALIZE_H
 
-#include <stdint.h>   // uint*_t
-#include <stddef.h>   // size_t
-#include "types.h" // tx_output_t
+#include <stdint.h>  // uint*_t
+#include <stddef.h>  // size_t
+#include "types.h"   // tx_output_t
 
 /**
  * Parse raw transaction output from buffer.

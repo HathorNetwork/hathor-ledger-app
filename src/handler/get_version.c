@@ -20,13 +20,13 @@ int handler_get_version() {
                    "PATCH version must be between 0 and 255!");
 
     return io_send_response(
-        &(const buffer_t){.ptr = (uint8_t[3+APPVERSION_LEN]){(uint8_t) 'H',
-                                                           (uint8_t) 'T',
-                                                           (uint8_t) 'R',
-                                                           (uint8_t) MAJOR_VERSION,
-                                                           (uint8_t) MINOR_VERSION,
-                                                           (uint8_t) PATCH_VERSION},
-                          .size = 3+APPVERSION_LEN,
+        &(const buffer_t){.ptr = (uint8_t[3 + APPVERSION_LEN]){(uint8_t) 'H',
+                                                               (uint8_t) 'T',
+                                                               (uint8_t) 'R',
+                                                               (uint8_t) MAJOR_VERSION,
+                                                               (uint8_t) MINOR_VERSION,
+                                                               (uint8_t) PATCH_VERSION},
+                          .size = 3 + APPVERSION_LEN,
                           .offset = 0},
         SW_OK);
 }

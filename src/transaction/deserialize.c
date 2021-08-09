@@ -1,10 +1,9 @@
 #include <stdbool.h>  // bool
 #include <string.h>   // memset, explicit_bzero, memmove
 
-
 #include "deserialize.h"
 
-#include "os.h" // THROW
+#include "os.h"  // THROW
 // #include "cx.h"
 #include "../sw.h"
 // #include "../common/read.h"
@@ -16,7 +15,8 @@
  * XXX: considering only P2PKH, without timelock
  * Validates that a script has the format of P2PKH. Throws an exception if doesn't.
  * P2PKH scripts have the format:
- *   [OP_DUP(1), OP_HASH160(1), pubkey_hash_len(1), pubkey_hash(20), OP_EQUALVERIFY(1), OP_CHECKSIG(1)]
+ *   [OP_DUP(1), OP_HASH160(1), pubkey_hash_len(1), pubkey_hash(20), OP_EQUALVERIFY(1),
+ * OP_CHECKSIG(1)]
  */
 void validate_p2pkh_script(buffer_t *in, size_t script_len) {
     uint8_t p2pkh[] = {OP_DUP, OP_HASH160, PUBKEY_HASH_LEN, OP_EQUALVERIFY, OP_CHECKSIG};
@@ -28,50 +28,48 @@ void validate_p2pkh_script(buffer_t *in, size_t script_len) {
         THROW(TX_STATE_READY);
     }
 
-    if (memcmp(p2pkh, in->ptr + in->offset, 3) != 0 || memcmp(p2pkh+3, in->ptr + in->offset + PUBKEY_HASH_LEN + 3, 2) != 0) {
+    if (memcmp(p2pkh, in->ptr + in->offset, 3) != 0 ||
+        memcmp(p2pkh + 3, in->ptr + in->offset + PUBKEY_HASH_LEN + 3, 2) != 0) {
         THROW(SW_TX_PARSING_FAIL);
     }
 }
 
 void parse_output_value(buffer_t *buf, uint64_t *value) {
-    // if first bit is 1 value has length 8 bytes, otherwise it's 4 bytes 
-    bool flag = (bool)(0x80u & buf->ptr[0]);
+    // if first bit is 1 value has length 8 bytes, otherwise it's 4 bytes
+    bool flag = (bool) (0x80u & buf->ptr[0]);
     if (flag) {
         uint64_t tmp = 0;
-        if(!buffer_read_u64(buf, &tmp, BE)) {
+        if (!buffer_read_u64(buf, &tmp, BE)) {
             THROW(TX_STATE_READY);
         }
         // To use the first bit to indicate length of 8 bytes
         // we serialized the negative value of the 8 byte int so we need to correct it
-        tmp = (-1)*tmp;
+        tmp = (-1) * tmp;
         *value = tmp;
     } else {
         uint32_t tmp = 0;
-        if(!buffer_read_u32(buf, &tmp, BE)) {
+        if (!buffer_read_u32(buf, &tmp, BE)) {
             THROW(TX_STATE_READY);
         }
-        // we don't need to correct anything 
+        // we don't need to correct anything
         *value = (uint64_t) tmp;
     }
 }
 
 size_t parse_output(uint8_t *in, size_t inlen, tx_output_t *output) {
     uint16_t script_len;
-    buffer_t buf = {.ptr = in, .size = inlen, .offset=0};
+    buffer_t buf = {.ptr = in, .size = inlen, .offset = 0};
     parse_output_value(&buf, &output->value);
 
     // read token data and script length
-    if (!(
-        buffer_read_u8(&buf, &output->token_data) &&
-        buffer_read_u16(&buf, &script_len, BE)
-        )) {
-            THROW(TX_STATE_READY);
-        }
+    if (!(buffer_read_u8(&buf, &output->token_data) && buffer_read_u16(&buf, &script_len, BE))) {
+        THROW(TX_STATE_READY);
+    }
     // validate script and extract pubkey hash
     validate_p2pkh_script(&buf, script_len);
     // validate already asserted the length for this extraction
     memmove(output->pubkey_hash, buf.ptr + buf.offset + 3, PUBKEY_HASH_LEN);
-    if(!buffer_seek_cur(&buf, script_len)) {
+    if (!buffer_seek_cur(&buf, script_len)) {
         THROW(SW_TX_PARSING_FAIL);
     }
 

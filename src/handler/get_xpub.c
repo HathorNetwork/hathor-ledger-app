@@ -23,18 +23,21 @@ void derive_xpub() {
 
     uint8_t chain_code[32];
     uint8_t hash_160[20];
-    
+
     uint32_t parent_path[MAX_BIP32_PATH] = {0};
 
     // derive for bip32 path
-    derive_private_key(&private_key, chain_code, G_context.bip32_path.path, G_context.bip32_path.length);
+    derive_private_key(&private_key,
+                       chain_code,
+                       G_context.bip32_path.path,
+                       G_context.bip32_path.length);
     init_public_key(&private_key, &public_key);
 
     memmove(G_context.pk_info.raw_public_key, public_key.W, public_key.W_len);
     memmove(G_context.pk_info.chain_code, chain_code, 32);
 
     // derive parent
-    for (int i = 0; i < G_context.bip32_path.length-1; i++) {
+    for (int i = 0; i < G_context.bip32_path.length - 1; i++) {
         parent_path[i] = G_context.bip32_path.path[i];
     }
     derive_private_key(&private_key, chain_code, parent_path, G_context.bip32_path.length - 1);

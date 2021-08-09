@@ -90,4 +90,4 @@ void format_value(uint64_t value, char *out);
  *   which base to format output.
  *
  */
-void itoa(int value, char* result, int base);
+void itoa(int value, char *result, int base);
