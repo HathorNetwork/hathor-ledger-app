@@ -1,13 +1,13 @@
-# Boilerplate commands
+# Hathor commands
 
 ## Overview
 
 | Command name | INS | Description |
 | --- | --- | --- |
-| `GET_VERSION` | 0x03 | Get application version as `MAJOR`, `MINOR`, `PATCH` |
-| `GET_APP_NAME` | 0x04 | Get ASCII encoded application name |
-| `GET_PUBLIC_KEY` | 0x05 | Get public key given BIP32 path |
-| `SIGN_TX` | 0x06 | Sign transaction given BIP32 path and raw transaction |
+| `GET_VERSION` | 0x03 | Get application version as 'H', 'T', 'R', `MAJOR`, `MINOR`, `PATCH` |
+| `GET_ADDRESS` | 0x04 | Confirm the address on a given BIP32 path with the user |
+| `GET_XPUB` | 0x05 | Get xpub data given BIP32 path |
+| `SIGN_TX` | 0x06 | Sign transaction |
 
 ## GET_VERSION
 
@@ -21,35 +21,35 @@
 
 | Response length (bytes) | SW | RData |
 | --- | --- | --- |
-| 3 | 0x9000 | `MAJOR (1)` \|\| `MINOR (1)` \|\| `PATCH (1)` |
+| 6 | 0x9000 | `'HTR'` \|\| `MAJOR (1)` \|\| `MINOR (1)` \|\| `PATCH (1)` |
 
-## GET_APP_NAME
-
-### Command
-
-| CLA | INS | P1 | P2 | Lc | CData |
-| --- | --- | --- | --- | --- | --- |
-| 0xE0 | 0x04 | 0x00 | 0x00 | 0x00 | - |
-
-### Response
-
-| Response length (bytes) | SW | RData |
-| --- | --- | --- |
-| var | 0x9000 | `APPNAME (var)` |
-
-## GET_PUBLIC_KEY
+## GET_ADDRESS
 
 ### Command
 
 | CLA | INS | P1 | P2 | Lc | CData |
 | --- | --- | --- | --- | --- | --- |
-| 0xE0 | 0x05 | 0x00 (no display) <br> 0x01 (display) | 0x00 | 1 + 4n | `len(bip32_path) (1)` \|\|<br> `bip32_path{1} (4)` \|\|<br>`...` \|\|<br>`bip32_path{n} (4)` |
+| 0xE0 | 0x04 | 0x00 | 0x00 | 1 + 4n | `len(bip32_path) (1)` \|\|<br> `bip32_path{1} (4)` \|\|<br>`...` \|\|<br>`bip32_path{n} (4)` |
 
 ### Response
 
 | Response length (bytes) | SW | RData |
 | --- | --- | --- |
-| var | 0x9000 | `len(public_key) (1)` \|\|<br> `public_key (var)` \|\|<br> `len(chain_code) (1)` \|\|<br> `chain_code (var)` |
+| 0 | 0x9000 | - |
+
+## GET_XPUB
+
+### Command
+
+| CLA | INS | P1 | P2 | Lc | CData |
+| --- | --- | --- | --- | --- | --- |
+| 0xE0 | 0x05 | 0x00 | 0x00 | 1 + 4n | `len(bip32_path) (1)` \|\|<br> `bip32_path{1} (4)` \|\|<br>`...` \|\|<br>`bip32_path{n} (4)` |
+
+### Response
+
+| Response length (bytes) | SW | RData |
+| --- | --- | --- |
+| var | 0x9000 | `raw_public_key (65)` \|\|<br> `chain_code (32)`  \|\|<br> `fingerprint (4)` |
 
 ## SIGN_TX
 
@@ -57,14 +57,36 @@
 
 | CLA | INS | P1 | P2 | Lc | CData |
 | --- | --- | --- | --- | --- | --- |
-| 0xE0 | 0x06 | 0x00-0x03 (chunk index) | 0x00 (more) <br> 0x80 (last) | 1 + 4n | `len(bip32_path) (1)` \|\|<br> `bip32_path{1} (4)` \|\|<br>`...` \|\|<br>`bip32_path{n} (4)` |
+| 0xE0 | 0x06 | 0x00-0x02 (stage) | 0x00-0xFF (chunk index) | var | see below |
+
+| P1 | Stage | Cdata |
+| --- | --- | --- |
+| 0x00 | data | `change info (var)` \|\|<br> `TX version (2)` \|\|<br> `number of tokens (1)` \|\|<br> `number of inputs (1)` \|\|<br> `number of outputs (1)` \|\|<br> `tokens (32 * num_token)` \|\|<br> `inputs (35 * num_inputs)` \|\|<br> `outputs (var)` |
+| 0x01 | sign | `len(bip32_path) (1)` \|\|<br> `bip32_path{1} (4)` \|\|<br>`...` \|\|<br>`bip32_path{n} (4)` |
+| 0x02 | end | - |
+
+Change info:
+
+| Have change output | Cdata |
+| --- | --- |
+| `false` | `0x00 (1)` |
+| `true` | `first bit on + len(change_bip32_path) (1)` \|\|<br> `change output index (1)` \|\|<br> `bip32_path{1} (4)` \|\|<br>`...` \|\|<br>`bip32_path{n} (4)` |
+
+- `len(change_bip32_path)` can have a low hard limit (i.e. 5) so we can interpret this only with 4 bits, and since `has_change_output` is a boolean, we can use a byte to represent both.
+    - The byte: `A____ BBBB` where A is the `has_change_output` and B is the `len(bip_32_path)`
+- `change_output_index`: omit if `has_change_output` is false
+- The next 4c bytes (c being `len(change_bip_32_path)`) are the bip32_path.
+
 
 ### Response
 
-| Response length (bytes) | SW | RData |
-| --- | --- | --- |
-| var | 0x9000 | `len(signature) (1)` \|\| <br> `signature (var)` \|\| <br> `v (1)`|
+| Stage | Response length (bytes) | SW | RData |
+| --- | --- | --- | --- |
+| data | 0 | 0x9000 | - |
+| sign | var | 0x9000 | `signature (var)` |
+| end | 0 | 0x9000 | - |
 
+On the `data` and `sign` stages each call receives a `SW_OK` when processing is done (or upon user confirmation) so the caller can send more data.
 
 ## Status Words
 
