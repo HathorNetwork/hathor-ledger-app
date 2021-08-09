@@ -5,9 +5,25 @@
 #include <stdbool.h>  // bool
 
 /**
+ * Maximum derivation index to use.
+ * Should allow:
+ * 0  - MAX_DERIVATION_INDEX
+ * 0' - MAX_DERIVATION_INDEX'
+*/
+#define MAX_DERIVATION_INDEX 512
+
+/**
  * Maximum length of BIP32 path allowed.
+ * 
+ * m/purpose'/coin'/acct'/change/index
+ * we don't need derivation past index level
  */
-#define MAX_BIP32_PATH 10
+#define MAX_BIP32_PATH 5
+
+typedef struct bip32_path {
+    uint8_t length;
+    uint32_t path[MAX_BIP32_PATH];
+} bip32_path_t;
 
 /**
  * Read BIP32 path from byte buffer.
@@ -17,14 +33,12 @@
  * @param[in]  in_len
  *   Length of input byte buffer.
  * @param[out] out
- *   Pointer to output 32-bit integer buffer.
- * @param[in]  out_len
- *   Number of BIP32 paths read in the output buffer.
+ *   Pointer to output path.
  *
  * @return true if success, false otherwise.
  *
  */
-bool bip32_path_read(const uint8_t *in, size_t in_len, uint32_t *out, size_t out_len);
+bool bip32_path_read(const uint8_t *in, size_t in_len, bip32_path_t *out);
 
 /**
  * Format BIP32 path as string.

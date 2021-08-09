@@ -29,3 +29,6 @@ __pycache__/
 # Doxygen
 doc/html
 doc/latex
+
+# BOLOS dev environment
+dev-env/

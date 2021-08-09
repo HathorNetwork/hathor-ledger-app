@@ -1,27 +1,16 @@
-# Ledger Boilerplate Application
+# Ledger Hathor Application
 
-This is a boilerplate application which can be forked to start a new project for the Ledger Nano S/X.
+Hathor application
 
 ## Prerequisite
 
 Be sure to have your environment correctly set up (see [Getting Started](https://ledger.readthedocs.io/en/latest/userspace/introduction.html)) and [ledgerblue](https://pypi.org/project/ledgerblue/) and installed.
 
-If you want to benefit from [vscode](https://code.visualstudio.com/) integration, it's recommended to move the toolchain in `/opt` and set `BOLOS_ENV` environment variable as follows
-
-```
-BOLOS_ENV=/opt/bolos-devenv
-```
-
-and do the same with `BOLOS_SDK` environment variable
-
-```
-BOLOS_SDK=/opt/nanos-secure-sdk
-```
-
 ## Compilation
 
 ```
 make DEBUG=1  # compile optionally with PRINTF
+make NETWORK=testnet  # compile app for testnet
 make load     # load the app on the Nano using ledgerblue
 ```
 
@@ -48,7 +37,7 @@ The flow processed in [GitHub Actions](https://github.com/features/actions) is t
 
 It outputs 4 artifacts:
 
-- `boilerplate-app-debug` within output files of the compilation process in debug mode
+- `hathor-app-debug` within output files of the compilation process in debug mode
 - `speculos-log` within APDU command/response when executing end-to-end tests
 - `code-coverage` within HTML details of code coverage
 - `documentation` within HTML auto-generated documentation

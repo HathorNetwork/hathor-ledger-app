@@ -1,20 +1,3 @@
-/*****************************************************************************
- *   Ledger App Boilerplate.
- *   (c) 2020 Ledger SAS.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *****************************************************************************/
-
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -26,8 +9,8 @@
 #include "../sw.h"
 #include "../common/buffer.h"
 #include "../handler/get_version.h"
-#include "../handler/get_app_name.h"
-#include "../handler/get_public_key.h"
+#include "../handler/get_address.h"
+#include "../handler/get_xpub.h"
 #include "../handler/sign_tx.h"
 
 int apdu_dispatcher(const command_t *cmd) {
@@ -44,14 +27,22 @@ int apdu_dispatcher(const command_t *cmd) {
             }
 
             return handler_get_version();
-        case GET_APP_NAME:
+        case GET_ADDRESS:
             if (cmd->p1 != 0 || cmd->p2 != 0) {
                 return io_send_sw(SW_WRONG_P1P2);
             }
 
-            return handler_get_app_name();
-        case GET_PUBLIC_KEY:
-            if (cmd->p1 > 1 || cmd->p2 > 0) {
+            if (!cmd->data) {
+                return io_send_sw(SW_WRONG_DATA_LENGTH);
+            }
+
+            buf.ptr = cmd->data;
+            buf.size = cmd->lc;
+            buf.offset = 0;
+
+            return handler_get_address(&buf);
+        case GET_XPUB:
+            if (cmd->p1 != 0 || cmd->p2 != 0) {
                 return io_send_sw(SW_WRONG_P1P2);
             }
 
@@ -63,23 +54,29 @@ int apdu_dispatcher(const command_t *cmd) {
             buf.size = cmd->lc;
             buf.offset = 0;
 
-            return handler_get_public_key(&buf, (bool) cmd->p1);
+            return handler_get_xpub(&buf);
         case SIGN_TX:
-            if ((cmd->p1 == P1_START && cmd->p2 != P2_MORE) ||  //
-                cmd->p1 > P1_MAX ||                             //
-                (cmd->p2 != P2_LAST && cmd->p2 != P2_MORE)) {
+            if (cmd->p1 > SIGN_TX_P1_MAX ||                                     //
+                (cmd->p1 == SIGN_TX_P1_SIGN && cmd->p2 != SIGN_TX_P2_SIGN) ||   //
+                (cmd->p1 == SIGN_TX_P1_DONE && cmd->p2 != SIGN_TX_P2_DONE)) {   //
                 return io_send_sw(SW_WRONG_P1P2);
-            }
-
-            if (!cmd->data) {
-                return io_send_sw(SW_WRONG_DATA_LENGTH);
             }
 
             buf.ptr = cmd->data;
             buf.size = cmd->lc;
             buf.offset = 0;
 
-            return handler_sign_tx(&buf, cmd->p1, (bool) (cmd->p2 & P2_MORE));
+            if ((cmd->p1 == SIGN_TX_P1_DATA && !cmd->data) ||
+                (cmd->p1 == SIGN_TX_P1_SIGN && !cmd->data) ||
+                (cmd->p1 == SIGN_TX_P1_DONE && cmd->data)) {
+                // The data length is variable on each stage which requires data.
+                // so we will just test for existence or not of data
+                return io_send_sw(SW_WRONG_DATA_LENGTH);
+            } else if (cmd->p1 == SIGN_TX_P1_DONE && cmd->data) {
+
+            }
+
+            return handler_sign_tx(&buf, (sing_tx_stage_e) cmd->p1, cmd->p2);
         default:
             return io_send_sw(SW_INS_NOT_SUPPORTED);
     }

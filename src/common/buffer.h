@@ -4,6 +4,8 @@
 #include <stddef.h>   // size_t
 #include <stdbool.h>  // bool
 
+#include "bip32.h"
+
 /**
  * Enumeration for endianness.
  */
@@ -152,15 +154,12 @@ bool buffer_read_varint(buffer_t *buffer, uint64_t *value);
  * @param[in,out]  buffer
  *   Pointer to input buffer struct.
  * @param[out]     out
- *   Pointer to output 32-bit integer buffer.
- * @param[in]      out_len
- *   Number of BIP32 paths read in the output buffer.
+ *   Pointer to output path.
  *
  * @return true if success, false otherwise.
  *
  */
-bool buffer_read_bip32_path(buffer_t *buffer, uint32_t *out, size_t out_len);
-
+bool buffer_read_bip32_path(buffer_t *buffer, bip32_path_t *out);
 /**
  * Copy bytes from buffer without moving offset.
  *

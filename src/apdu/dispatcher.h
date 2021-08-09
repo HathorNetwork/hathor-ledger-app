@@ -2,22 +2,14 @@
 
 #include "../types.h"
 
-/**
- * Parameter 2 for last APDU to receive.
- */
-#define P2_LAST 0x00
-/**
- * Parameter 2 for more APDU to receive.
- */
-#define P2_MORE 0x80
-/**
- * Parameter 1 for first APDU number.
- */
-#define P1_START 0x00
-/**
- * Parameter 1 for maximum APDU number.
- */
-#define P1_MAX 0x03
+#define SIGN_TX_P1_DATA 0x00
+#define SIGN_TX_P1_SIGN 0x01
+#define SIGN_TX_P1_DONE 0x02
+
+#define SIGN_TX_P2_SIGN 0x00
+#define SIGN_TX_P2_DONE 0x00
+
+#define SIGN_TX_P1_MAX 0x02
 
 /**
  * Dispatch APDU command received to the right handler.

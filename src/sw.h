@@ -25,7 +25,7 @@
  */
 #define SW_CLA_NOT_SUPPORTED 0x6E00
 /**
- * Status word for wrong reponse length (buffer too small or too big).
+ * Status word for wrong response length (buffer too small or too big).
  */
 #define SW_WRONG_RESPONSE_LENGTH 0xB000
 /**
@@ -60,3 +60,8 @@
  * Status word for signature fail.
  */
 #define SW_SIGNATURE_FAIL 0xB008
+
+/**
+ * Status word for invalid tx
+ */
+#define SW_INVALID_TX 0xB009

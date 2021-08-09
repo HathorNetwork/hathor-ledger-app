@@ -14,9 +14,33 @@
             ]
         },
         {
+            "label": "[testnet] make",
+            "type": "shell",
+            "command": "make clean && make NETWORK=testnet",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
             "label": "[debug] make",
             "type": "shell",
             "command": "make clean && make DEBUG=1",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "[testnet] [debug] make",
+            "type": "shell",
+            "command": "make clean && make DEBUG=1 NETWORK=testnet",
             "group": {
                 "kind": "build",
                 "isDefault": true

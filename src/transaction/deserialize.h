@@ -1,17 +1,23 @@
-#pragma once
+#ifndef TRANSACTION_DESERIALIZE_H
+#define TRANSACTION_DESERIALIZE_H
 
-#include "types.h"
-#include "../common/buffer.h"
+#include <stdint.h>   // uint*_t
+#include <stddef.h>   // size_t
+#include "types.h" // tx_output_t
 
 /**
- * Deserialize raw transaction in structure.
+ * Parse raw transaction output from buffer.
  *
- * @param[in, out] buf
+ * @param[in] in
  *   Pointer to buffer with serialized transaction.
- * @param[out]     tx
- *   Pointer to transaction structure.
+ * @param[in] inlen
+ *   Size of buffer holding serialized transaction.
+ * @param[out] output
+ *   Pointer to output structure.
  *
- * @return PARSING_OK if success, error status otherwise.
+ * @return size in bytes of the serialized output from `in`
  *
  */
-parser_status_e transaction_deserialize(buffer_t *buf, transaction_t *tx);
+size_t parse_output(uint8_t *in, size_t inlen, tx_output_t *output);
+
+#endif

@@ -1,19 +1,3 @@
-/*****************************************************************************
- *   (c) 2020 Ledger SAS.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *****************************************************************************/
-
 #include <stdio.h>    // snprintf
 #include <string.h>   // memset, strlen
 #include <stddef.h>   // size_t
@@ -23,18 +7,24 @@
 #include "bip32.h"
 #include "read.h"
 
-bool bip32_path_read(const uint8_t *in, size_t in_len, uint32_t *out, size_t out_len) {
-    if (out_len == 0 || out_len > MAX_BIP32_PATH) {
+bool bip32_path_read(const uint8_t *in, size_t in_len, bip32_path_t *out) {
+    if (in_len < 1 || in[0] > MAX_BIP32_PATH || in[0] * 4 + 1 > in_len ) {
         return false;
     }
-
     size_t offset = 0;
-
-    for (size_t i = 0; i < out_len; i++) {
+    out->length = in[0];
+    offset++;
+    for (size_t i = 0; i < out->length; i++) {
         if (offset > in_len) {
+            // shouldn't happen, we check length on the if above
             return false;
         }
-        out[i] = read_u32_be(in, offset);
+        out->path[i] = read_u32_be(in, offset);
+        if ((out->path[i] & 0x7FFFFFFFu) > MAX_DERIVATION_INDEX) {
+            // we will not allow derivations past MAX_DERIVATION_INDEX
+            // or MAX_DERIVATION_INDEX' which is why we ignore the first bit
+            return false;
+        }
         offset += 4;
     }
 

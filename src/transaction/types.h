@@ -3,25 +3,34 @@
 #include <stddef.h>  // size_t
 #include <stdint.h>  // uint*_t
 
-#define MAX_TX_LEN   510
-#define ADDRESS_LEN  20
-#define MAX_MEMO_LEN 465  // 510 - ADDRESS_LEN - 2*SIZE(U64) - SIZE(MAX_VARINT)
+#include "opcodes.h"
+
+#include "../common/bip32.h"
+#include "../constants.h"
 
 typedef enum {
-    PARSING_OK = 1,
-    NONCE_PARSING_ERROR = -1,
-    TO_PARSING_ERROR = -2,
-    VALUE_PARSING_ERROR = -3,
-    MEMO_LENGTH_ERROR = -4,
-    MEMO_PARSING_ERROR = -5,
-    MEMO_ENCODING_ERROR = -6,
-    WRONG_LENGTH_ERROR = -7
-} parser_status_e;
+    TX_STATE_ERR = 1,
+    TX_STATE_READY = 2,
+} tx_decoder_state_e;
 
+typedef enum {
+    ELEM_TOKEN_UID,
+    ELEM_INPUT,
+    ELEM_OUTPUT,
+} tx_decoder_elem_t;
+
+typedef enum {
+    SIGN_TX_STAGE_DATA = 0,
+    SIGN_TX_STAGE_SIGN = 1,
+    SIGN_TX_STAGE_DONE = 2
+} sing_tx_stage_e;
+
+/**
+ * Structure for transaction output
+ */
 typedef struct {
-    uint64_t nonce;     /// nonce (8 bytes)
-    uint64_t value;     /// amount value (8 bytes)
-    uint8_t *to;        /// pointer to address (20 bytes)
-    uint8_t *memo;      /// memo (variable length)
-    uint64_t memo_len;  /// length of memo (8 bytes)
-} transaction_t;
+    uint8_t index;
+    uint64_t value;
+    uint8_t token_data;
+    uint8_t pubkey_hash[PUBKEY_HASH_LEN];  // hash160 of pubkey
+} tx_output_t;

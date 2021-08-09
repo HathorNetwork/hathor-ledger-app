@@ -1,19 +1,3 @@
-/*****************************************************************************
- *   (c) 2020 Ledger SAS.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *****************************************************************************/
-
 #include <stddef.h>   // size_t
 #include <stdint.h>   // int*_t, uint*_t
 #include <string.h>   // strncpy, memmove
@@ -155,3 +139,76 @@ int format_hex(const uint8_t *in, size_t in_len, char *out, size_t out_len) {
 
     return written + 1;
 }
+
+void format_value(uint64_t value, char *out) {
+    // first deal with the part to the left of the decimal separator
+    uint64_t tmp = value / 100;
+    int c;
+    char buf[35];
+    char *p;
+
+    // utoa(tmp, buf);
+    format_u64(buf, sizeof(buf), tmp);
+    // 'c' is used here to control when a comma should be added
+    c = 2 - strlen(buf) % 3;
+    for (p = buf; *p != 0; p++) {
+       *out++ = *p;
+       if (c == 1) {
+           *out++ = ',';
+       }
+       c = (c + 1) % 3;
+    }
+    *--out = 0;
+
+    // now the part to the right of the decimal separator
+    tmp = value % 100;
+    // reusing 'c' variable to point to the end of string, to add decimal
+    // separator and possibly pad with 0
+    c = strlen((const char*)out);
+    out[c++] = '.';
+    if (tmp < 10) {
+        out[c++] = '0';
+    }
+    itoa(tmp, (char*)out + c, 10);
+}
+
+void itoa(int value, char* result, int base) {
+    // check that the base if valid
+    if (base < 2 || base > 36) { *result = '\0'; }
+
+    char* ptr = result, *ptr1 = result, tmp_char;
+    int tmp_value;
+
+    do {
+        tmp_value = value;
+        value /= base;
+        *ptr++ = "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz" [35 + (tmp_value - value * base)];
+    } while ( value );
+
+    // Apply negative sign
+    if (tmp_value < 0) *ptr++ = '-';
+    *ptr-- = '\0';
+    while(ptr1 < ptr) {
+        tmp_char = *ptr;
+        *ptr-- = *ptr1;
+        *ptr1++ = tmp_char;
+    }
+}
+
+// void utoa(uint64_t value, char *s) {
+//     // small optimization
+//     if (value < 10) {
+//         s[0] = '0' + (uint8_t)value;
+//         s[1] = 0;
+//         return;
+//     }
+//     uint64_t tmp = value;
+//     uint8_t idx = 0;
+//     while (tmp > 0) {
+//         s[idx] = (tmp % 10) + '0';
+//         tmp = tmp / 10;
+//         idx++;
+//     }
+//     s[idx] = 0;
+//     strrev(s);
+// }

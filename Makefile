@@ -1,41 +1,42 @@
-# ****************************************************************************
-#    Ledger App Boilerplate
-#    (c) 2020 Ledger SAS.
-#
-#   Licensed under the Apache License, Version 2.0 (the "License");
-#   you may not use this file except in compliance with the License.
-#   You may obtain a copy of the License at
-#
-#       http://www.apache.org/licenses/LICENSE-2.0
-#
-#   Unless required by applicable law or agreed to in writing, software
-#   distributed under the License is distributed on an "AS IS" BASIS,
-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#   See the License for the specific language governing permissions and
-#   limitations under the License.
-# ****************************************************************************
-
 ifeq ($(BOLOS_SDK),)
 $(error Environment variable BOLOS_SDK is not set)
 endif
+
+HATHOR_BIP44_CODE = 280
+DEFINES += HATHOR_BIP44_CODE=$(HATHOR_BIP44_CODE)
+
+ifndef NETWORK
+NETWORK=mainnet
+endif
+DEFINES += NETWORK=\"$(NETWORK)\"
 
 include $(BOLOS_SDK)/Makefile.defines
 
 APP_LOAD_PARAMS  = --curve secp256k1
 APP_LOAD_PARAMS += --appFlags 0x240
-APP_LOAD_PARAMS += --path "44'"
+# APP_LOAD_PARAMS += --appFlags 0x40
+APP_LOAD_PARAMS += --path "44'/$(HATHOR_BIP44_CODE)'"
 APP_LOAD_PARAMS += $(COMMON_LOAD_PARAMS)
 
-APPNAME      = "Boilerplate"
+ifeq ($(NETWORK),mainnet)
+APPNAME      = Hathor
+P2PKH_VERSION_BYTE = 0x28
+else
+APPNAME      = Hathor testnet
+P2PKH_VERSION_BYTE = 0x49
+endif
+DEFINES += P2PKH_VERSION_BYTE=$(P2PKH_VERSION_BYTE)
+$(info NETWORK=$(NETWORK))
+
 APPVERSION_M = 1
 APPVERSION_N = 0
-APPVERSION_P = 1
+APPVERSION_P = 0
 APPVERSION   = "$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)"
 
 ifeq ($(TARGET_NAME),TARGET_NANOX)
-    ICONNAME=icons/nanox_app_boilerplate.gif
+    ICONNAME=icons/nanox_app_hathor.gif
 else
-    ICONNAME=icons/nanos_app_boilerplate.gif
+    ICONNAME=icons/nanos_app_hathor.gif
 endif
 
 all: default
@@ -51,19 +52,24 @@ DEFINES += USB_SEGMENT_SIZE=64
 DEFINES += BLE_SEGMENT_SIZE=32
 DEFINES += HAVE_WEBUSB WEBUSB_URL_SIZE_B=0 WEBUSB_URL=""
 DEFINES += UNUSED\(x\)=\(void\)x
+# Should be included from Makefile.conf.cx in SDK
+# DEFINES += HAVE_ECC HAVE_SECP256K1_CURVE HAVE_ECC_WEIERSTRASS HAVE_HASH HAVE_SHA3
 
-ifeq ($(TARGET_NAME),TARGET_NANOX)
-    DEFINES += IO_SEPROXYHAL_BUFFER_SIZE_B=300
-    DEFINES += HAVE_BLE BLE_COMMAND_TIMEOUT_MS=2000 HAVE_BLE_APDU
-    DEFINES += HAVE_GLO096
-    DEFINES += BAGL_WIDTH=128 BAGL_HEIGHT=64
-    DEFINES += HAVE_BAGL_ELLIPSIS
-    DEFINES += HAVE_BAGL_FONT_OPEN_SANS_REGULAR_11PX
-    DEFINES += HAVE_BAGL_FONT_OPEN_SANS_EXTRABOLD_11PX
-    DEFINES += HAVE_BAGL_FONT_OPEN_SANS_LIGHT_16PX
-else
-    DEFINES += IO_SEPROXYHAL_BUFFER_SIZE_B=128
-endif
+
+# XXX: configure this properly if Nano X compatibility is desired
+# ifeq ($(TARGET_NAME),TARGET_NANOX)
+#     DEFINES += IO_SEPROXYHAL_BUFFER_SIZE_B=300
+#     DEFINES += HAVE_BLE BLE_COMMAND_TIMEOUT_MS=2000 HAVE_BLE_APDU
+#     DEFINES += HAVE_GLO096
+#     DEFINES += BAGL_WIDTH=128 BAGL_HEIGHT=64
+#     DEFINES += HAVE_BAGL_ELLIPSIS
+#     DEFINES += HAVE_BAGL_FONT_OPEN_SANS_REGULAR_11PX
+#     DEFINES += HAVE_BAGL_FONT_OPEN_SANS_EXTRABOLD_11PX
+#     DEFINES += HAVE_BAGL_FONT_OPEN_SANS_LIGHT_16PX
+# else
+#     DEFINES += IO_SEPROXYHAL_BUFFER_SIZE_B=128
+# endif
+DEFINES += IO_SEPROXYHAL_BUFFER_SIZE_B=128
 
 DEBUG = 0
 ifneq ($(DEBUG),0)
@@ -80,7 +86,7 @@ endif
 ifneq ($(BOLOS_ENV),)
 $(info BOLOS_ENV=$(BOLOS_ENV))
 CLANGPATH := $(BOLOS_ENV)/clang-arm-fropi/bin/
-GCCPATH   := $(BOLOS_ENV)/gcc-arm-none-eabi-5_3-2016q1/bin/
+GCCPATH   := $(BOLOS_ENV)/gcc-arm-none-eabi-10-2020-q4-major/bin/
 else
 $(info BOLOS_ENV is not set: falling back to CLANGPATH and GCCPATH)
 endif
@@ -121,4 +127,4 @@ include $(BOLOS_SDK)/Makefile.rules
 dep/%.d: %.c Makefile
 
 listvariants:
-	@echo VARIANTS COIN BOL
+	@echo VARIANTS COIN hathor

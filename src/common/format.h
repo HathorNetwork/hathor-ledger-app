@@ -67,3 +67,27 @@ bool format_fpu64(char *dst, size_t dst_len, const uint64_t value, uint8_t decim
  *
  */
 int format_hex(const uint8_t *in, size_t in_len, char *out, size_t out_len);
+
+/**
+ * Format 64bit unsigned integer as a user readable value string.
+ *
+ * @param[in]  value
+ *   64-bit unsigned integer to format.
+ * @param[out] out
+ *   Pointer to output string.
+ *
+ */
+void format_value(uint64_t value, char *out);
+
+/**
+ * Format integer to user readable string in base.
+ *
+ * @param[in]  value
+ *   integer to format.
+ * @param[out] result
+ *   Pointer to output string.
+ * @param[in]  base
+ *   which base to format output.
+ *
+ */
+void itoa(int value, char* result, int base);

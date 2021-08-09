@@ -1,62 +1,80 @@
-/*****************************************************************************
- *   Ledger App Boilerplate.
- *   (c) 2020 Ledger SAS.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *****************************************************************************/
+#include <stdbool.h>  // bool
+#include <string.h>   // memset, explicit_bzero, memmove
+
 
 #include "deserialize.h"
-#include "utils.h"
-#include "types.h"
+
+#include "os.h" // THROW
+// #include "cx.h"
+#include "../sw.h"
+// #include "../common/read.h"
+#include "constants.h"
 #include "../common/buffer.h"
+#include "types.h"
 
-parser_status_e transaction_deserialize(buffer_t *buf, transaction_t *tx) {
-    if (buf->size > MAX_TX_LEN) {
-        return WRONG_LENGTH_ERROR;
+/**
+ * XXX: considering only P2PKH, without timelock
+ * Validates that a script has the format of P2PKH. Throws an exception if doesn't.
+ * P2PKH scripts have the format:
+ *   [OP_DUP(1), OP_HASH160(1), pubkey_hash_len(1), pubkey_hash(20), OP_EQUALVERIFY(1), OP_CHECKSIG(1)]
+ */
+void validate_p2pkh_script(buffer_t *in, size_t script_len) {
+    uint8_t p2pkh[] = {OP_DUP, OP_HASH160, PUBKEY_HASH_LEN, OP_EQUALVERIFY, OP_CHECKSIG};
+    if (script_len != 25) {
+        THROW(SW_TX_PARSING_FAIL);
     }
 
-    // nonce
-    if (!buffer_read_u64(buf, &tx->nonce, BE)) {
-        return NONCE_PARSING_ERROR;
+    if (in->size - in->offset < 25) {
+        THROW(TX_STATE_READY);
     }
 
-    tx->to = (uint8_t *) (buf->ptr + buf->offset);
+    if (memcmp(p2pkh, in->ptr + in->offset, 3) != 0 || memcmp(p2pkh+3, in->ptr + in->offset + PUBKEY_HASH_LEN + 3, 2) != 0) {
+        THROW(SW_TX_PARSING_FAIL);
+    }
+}
 
-    // TO address
-    if (!buffer_seek_cur(buf, ADDRESS_LEN)) {
-        return TO_PARSING_ERROR;
+void parse_output_value(buffer_t *buf, uint64_t *value) {
+    // if first bit is 1 value has length 8 bytes, otherwise it's 4 bytes 
+    bool flag = (bool)(0x80u & buf->ptr[0]);
+    if (flag) {
+        uint64_t tmp = 0;
+        if(!buffer_read_u64(buf, &tmp, BE)) {
+            THROW(TX_STATE_READY);
+        }
+        // To use the first bit to indicate length of 8 bytes
+        // we serialized the negative value of the 8 byte int so we need to correct it
+        tmp = (-1)*tmp;
+        *value = tmp;
+    } else {
+        uint32_t tmp = 0;
+        if(!buffer_read_u32(buf, &tmp, BE)) {
+            THROW(TX_STATE_READY);
+        }
+        // we don't need to correct anything 
+        *value = (uint64_t) tmp;
+    }
+}
+
+size_t parse_output(uint8_t *in, size_t inlen, tx_output_t *output) {
+    uint16_t script_len;
+    buffer_t buf = {.ptr = in, .size = inlen, .offset=0};
+    parse_output_value(&buf, &output->value);
+
+    // read token data and script length
+    if (!(
+        buffer_read_u8(&buf, &output->token_data) &&
+        buffer_read_u16(&buf, &script_len, BE)
+        )) {
+            THROW(TX_STATE_READY);
+        }
+    // validate script and extract pubkey hash
+    validate_p2pkh_script(&buf, script_len);
+    // validate already asserted the length for this extraction
+    memmove(output->pubkey_hash, buf.ptr + buf.offset + 3, PUBKEY_HASH_LEN);
+    if(!buffer_seek_cur(&buf, script_len)) {
+        THROW(SW_TX_PARSING_FAIL);
     }
 
-    // amount value
-    if (!buffer_read_u64(buf, &tx->value, BE)) {
-        return VALUE_PARSING_ERROR;
-    }
-
-    // length of memo
-    if (!buffer_read_varint(buf, &tx->memo_len) && tx->memo_len > MAX_MEMO_LEN) {
-        return MEMO_LENGTH_ERROR;
-    }
-
-    // memo
-    tx->memo = (uint8_t *) (buf->ptr + buf->offset);
-
-    if (!buffer_seek_cur(buf, tx->memo_len)) {
-        return MEMO_PARSING_ERROR;
-    }
-
-    if (!transaction_utils_check_encoding(tx->memo, tx->memo_len)) {
-        return MEMO_ENCODING_ERROR;
-    }
-
-    return (buf->offset == buf->size) ? PARSING_OK : WRONG_LENGTH_ERROR;
+    // size of extracted data
+    return buf.offset;
 }
