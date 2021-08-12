@@ -23,7 +23,7 @@ bool bip32_path_read(const uint8_t *in, size_t in_len, bip32_path_t *out) {
         offset += 4;
     }
     if (out->length > 4) {
-        if ((out->path[4] & 0x7FFFFFFFu) > MAX_DERIVATION_INDEX) {
+        if (out->path[4] > MAX_DERIVATION_INDEX) {
             // we will not allow derivations past MAX_DERIVATION_INDEX
             // only on the index level
             return false;
