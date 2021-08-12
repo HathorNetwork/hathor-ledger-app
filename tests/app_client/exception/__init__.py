@@ -1,4 +1,4 @@
-from .device_exception import DeviceException
+from .device_exception import DeviceException, BOLOSPathPrefixError
 from .errors import (UnknownDeviceError,
                      DenyError,
                      WrongP1P2Error,
@@ -13,7 +13,8 @@ from .errors import (UnknownDeviceError,
                      TxParsingFailError,
                      TxHashFail,
                      BadStateError,
-                     SignatureFailError)
+                     SignatureFailError,
+                     TxInvalidError)
 
 __all__ = [
     "DeviceException",
@@ -31,5 +32,7 @@ __all__ = [
     "TxParsingFailError",
     "TxHashFail",
     "BadStateError",
-    "SignatureFailError"
+    "SignatureFailError",
+    # OS Specific errors
+    "BOLOSPathPrefixError",
 ]

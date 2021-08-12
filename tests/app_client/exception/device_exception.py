@@ -3,6 +3,8 @@ from typing import Dict, Any, Union
 
 from .errors import *
 
+class BOLOSPathPrefixError(Exception):
+    pass
 
 class DeviceException(Exception):  # pylint: disable=too-few-public-methods
     exc: Dict[int, Any] = {
@@ -19,7 +21,12 @@ class DeviceException(Exception):  # pylint: disable=too-few-public-methods
         0xB005: TxParsingFailError,
         0xB006: TxHashFail,
         0xB007: BadStateError,
-        0xB008: SignatureFailError
+        0xB008: SignatureFailError,
+        0xB009: TxInvalidError,
+    }
+
+    os_exc: Dict[int, Any] = {
+        0x4215: BOLOSPathPrefixError,
     }
 
     def __new__(cls,
@@ -32,6 +39,11 @@ class DeviceException(Exception):  # pylint: disable=too-few-public-methods
 
         if error_code in DeviceException.exc:
             return DeviceException.exc[error_code](hex(error_code),
+                                                   error_message,
+                                                   message)
+
+        if error_code in DeviceException.os_exc:
+            return DeviceException.os_exc[error_code](hex(error_code),
                                                    error_message,
                                                    message)
 

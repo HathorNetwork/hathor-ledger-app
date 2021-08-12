@@ -3,8 +3,8 @@ import logging
 import struct
 from typing import List, Tuple, Union, Iterator, cast
 
-from boilerplate_client.transaction import Transaction
-from boilerplate_client.utils import bip32_path_from_string
+from app_client.transaction import Transaction
+from app_client.utils import bip32_path_from_string
 
 MAX_APDU_LEN: int = 255
 
@@ -21,7 +21,8 @@ def chunkify(data: bytes, chunk_len: int) -> Iterator[Tuple[bool, bytes]]:
     offset: int = 0
 
     for i in range(chunk):
-        yield False, data[offset:offset + chunk_len]
+        is_last = (i == (chunk-1)) and remaining
+        yield is_last, data[offset:offset + chunk_len]
         offset += chunk_len
 
     if remaining:
@@ -30,13 +31,13 @@ def chunkify(data: bytes, chunk_len: int) -> Iterator[Tuple[bool, bytes]]:
 
 class InsType(enum.IntEnum):
     INS_GET_VERSION = 0x03
-    INS_GET_APP_NAME = 0x04
-    INS_GET_PUBLIC_KEY = 0x05
+    INS_GET_ADDRESS = 0x04
+    INS_GET_XPUB = 0x05
     INS_SIGN_TX = 0x06
 
 
-class BoilerplateCommandBuilder:
-    """APDU command builder for the Boilerplate application.
+class CommandBuilder:
+    """APDU command builder for the application.
 
     Parameters
     ----------
@@ -127,8 +128,8 @@ class BoilerplateCommandBuilder:
                               p2=0x00,
                               cdata=b"")
 
-    def get_app_name(self) -> bytes:
-        """Command builder for GET_APP_NAME.
+    def get_address(self, bip32_path: str) -> bytes:
+        """Command builder for GET_ADDRESS.
 
         Returns
         -------
@@ -136,26 +137,30 @@ class BoilerplateCommandBuilder:
             APDU command for GET_APP_NAME.
 
         """
+        bip32_paths: List[bytes] = bip32_path_from_string(bip32_path)
+
+        cdata: bytes = b"".join([
+            len(bip32_paths).to_bytes(1, byteorder="big"),
+            *bip32_paths
+        ])
         return self.serialize(cla=self.CLA,
-                              ins=InsType.INS_GET_APP_NAME,
+                              ins=InsType.INS_GET_ADDRESS,
                               p1=0x00,
                               p2=0x00,
-                              cdata=b"")
+                              cdata=cdata)
 
-    def get_public_key(self, bip32_path: str, display: bool = False) -> bytes:
-        """Command builder for GET_PUBLIC_KEY.
+    def get_xpub(self, bip32_path: str) -> bytes:
+        """Command builder for GET_XPUB.
 
         Parameters
         ----------
         bip32_path: str
             String representation of BIP32 path.
-        display : bool
-            Whether you want to display the address on the device.
 
         Returns
         -------
         bytes
-            APDU command for GET_PUBLIC_KEY.
+            APDU command for GET_XPUB.
 
         """
         bip32_paths: List[bytes] = bip32_path_from_string(bip32_path)
@@ -166,53 +171,72 @@ class BoilerplateCommandBuilder:
         ])
 
         return self.serialize(cla=self.CLA,
-                              ins=InsType.INS_GET_PUBLIC_KEY,
-                              p1=0x01 if display else 0x00,
+                              ins=InsType.INS_GET_XPUB,
+                              p1=0x00,
                               p2=0x00,
                               cdata=cdata)
 
-    def sign_tx(self, bip32_path: str, transaction: Transaction) -> Iterator[Tuple[bool, bytes]]:
+    def sign_tx(self, transaction: Transaction, has_change: bool = False, change_index: int = None, bip32_path: str = None) -> Iterator[Tuple[bool, int, bytes]]:
         """Command builder for INS_SIGN_TX.
 
         Parameters
         ----------
-        bip32_path : str
-            String representation of BIP32 path.
         transaction : Transaction
             Representation of the transaction to be signed.
+        has_change: bool
+            Wether the outputs of the transaction have a change output
+        change_index: int
+            The change output index, if it exists
+        bip32_path : str
+            String representation of the change address BIP32 path.
 
         Yields
         -------
+        bool
+            Is last packet of the stage
         bytes
             APDU command chunk for INS_SIGN_TX.
 
         """
-        bip32_paths: List[bytes] = bip32_path_from_string(bip32_path)
+        cdata: bytes = None
+        if has_change:
+            bip32_paths: List[bytes] = bip32_path_from_string(bip32_path)
 
-        cdata: bytes = b"".join([
-            len(bip32_paths).to_bytes(1, byteorder="big"),
-            *bip32_paths
-        ])
+            cdata = b"".join([
+                (0x80 | len(bip32_paths)).to_bytes(1, byteorder='big'),
+                change_index.to_bytes(1, byteorder='big'),
+                *bip32_paths
+            ])
+        else:
+            cdata = b'\x00'
 
-        yield False, self.serialize(cla=self.CLA,
-                                    ins=InsType.INS_SIGN_TX,
-                                    p1=0x00,
-                                    p2=0x80,
-                                    cdata=cdata)
+        # Send data
+        sent_outputs = 0
+        for i, (num_outputs, chunk) in enumerate(transaction.serialize(cdata, MAX_APDU_LEN)):
+            sent_outputs += num_outputs
+            is_last = sent_outputs == len(transaction.outputs)
+            print('\n', 'data:', i, num_outputs, chunk)
+            yield is_last, num_outputs, self.serialize(cla=self.CLA,
+                                                    ins=InsType.INS_SIGN_TX,
+                                                    p1=0x00,
+                                                    p2=i,
+                                                    cdata=chunk)
 
-        tx: bytes = transaction.serialize()
+        # Ask for input signatures
+        num_inputs = len(transaction.inputs)
+        for i, tx_input in enumerate(transaction.inputs):
+            assert tx_input.bip32_path is not None
+            bip32_paths: List[bytes] = bip32_path_from_string(tx_input.bip32_path)
 
-        for i, (is_last, chunk) in enumerate(chunkify(tx, MAX_APDU_LEN)):
-            if is_last:
-                yield True, self.serialize(cla=self.CLA,
-                                           ins=InsType.INS_SIGN_TX,
-                                           p1=i + 1,
-                                           p2=0x00,
-                                           cdata=chunk)
-                return
-            else:
-                yield False, self.serialize(cla=self.CLA,
-                                            ins=InsType.INS_SIGN_TX,
-                                            p1=i + 1,
-                                            p2=0x80,
-                                            cdata=chunk)
+            input_data: bytes = b"".join([
+                len(bip32_paths).to_bytes(1, byteorder="big"),
+                *bip32_paths
+            ])
+            yield (i + 1 == num_inputs), 0, self.serialize(cla=self.CLA,
+                                                        ins=InsType.INS_SIGN_TX,
+                                                        p1=0x01,
+                                                        p2=0x00,
+                                                        cdata=input_data)
+
+        # End sign tx command
+        yield True, 0, self.serialize(cla=self.CLA, ins=InsType.INS_SIGN_TX, p1=0x02, p2=0x00, cdata=b'')
