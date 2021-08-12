@@ -92,11 +92,7 @@ void derive_private_key(cx_ecfp_private_key_t *private_key,
  * You can safely use the first 33 bytes as the compressed public key after this call.
  *
  * @param[in]  value
- *   Pointer to raw public key.
- * @param[out] public_key
- *   Pointer to public key.
- * @param[out] raw_public_key
- *   Pointer to raw public key.
+ *   Pointer to raw public key, after this function it becomes a pointer to the compressed raw public key
  *
  * @throw INVALID_PARAMETER
  *

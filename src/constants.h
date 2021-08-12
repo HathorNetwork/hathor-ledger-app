@@ -34,8 +34,3 @@
  * Pubkey hash length
  */
 #define PUBKEY_HASH_LEN 20
-
-/**
- * Maximum number of outputs on a transaction.
- */
-#define MAX_NUM_TX_OUTPUTS 255
