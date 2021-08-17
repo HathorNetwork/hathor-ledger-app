@@ -20,13 +20,22 @@ bool bip32_path_read(const uint8_t *in, size_t in_len, bip32_path_t *out) {
             return false;
         }
         out->path[i] = read_u32_be(in, offset);
-        if ((out->path[i] & 0x7FFFFFFFu) > MAX_DERIVATION_INDEX) {
-            // we will not allow derivations past MAX_DERIVATION_INDEX
-            // or MAX_DERIVATION_INDEX' which is why we ignore the first bit
-            return false;
-        }
         offset += 4;
     }
+    if (out->length > 4) {
+        if (out->path[4] > MAX_DERIVATION_INDEX) {
+            // we will not allow derivations past MAX_DERIVATION_INDEX
+            // only on the index level
+            return false;
+        }
+    }
+    if (out->length > 3) {
+        if ((out->path[3]) > 1) {
+            // change level only allow 0 or 1
+            return false;
+        }
+    }
+    // BOLOS already verifies the first 3 levels, so we don't have to do it here.
 
     return true;
 }

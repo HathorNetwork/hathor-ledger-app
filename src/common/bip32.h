@@ -6,11 +6,10 @@
 
 /**
  * Maximum derivation index to use.
- * Should allow:
- * 0  - MAX_DERIVATION_INDEX
- * 0' - MAX_DERIVATION_INDEX'
+ * 2 power 20 or 0x100000u
+ * This number must never be higher than (1 << 31) because this is hardened index space
  */
-#define MAX_DERIVATION_INDEX 512
+#define MAX_DERIVATION_INDEX (1<<20)
 
 /**
  * Maximum length of BIP32 path allowed.
