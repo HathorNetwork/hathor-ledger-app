@@ -35,6 +35,7 @@ bool bip32_path_read(const uint8_t *in, size_t in_len, bip32_path_t *out) {
             return false;
         }
     }
+    // BOLOS already verifies the first 3 levels, so we don't have to do it here.
 
     return true;
 }
