@@ -8,7 +8,8 @@ LINTER_REPO = github.com/DoozyX/clang-format-lint-action
 LINTER_ARGS = --clang-format-executable /clang-format/clang-format11 --style=file -r ${EXCLUDES}
 DOCKER_LINTER_ARGS = -it --rm --workdir /src -v $(PWD):/src
 
-BUILDER_IMAGE = ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
+BUILDER_TAG=latest
+BUILDER_IMAGE = ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:$(BUILDER_TAG)
 DOCKER_BUILDER_ARGS = --rm -ti -v "$(realpath .):/app"
 
 .PHONY: lint
