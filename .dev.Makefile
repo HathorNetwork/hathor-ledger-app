@@ -40,4 +40,4 @@ build-nanox:
 
 .PHONY: builder
 builder:
-	docker run ${DOCKER_BUILDER_ARGS} ${BUILDER_IMAGE}
+	sudo docker run ${DOCKER_BUILDER_ARGS} -v "/dev/bus/usb:/dev/bus/usb" --privileged ${BUILDER_IMAGE}

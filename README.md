@@ -8,11 +8,25 @@ Be sure to have your environment correctly set up (see [Getting Started](https:/
 
 ## Compilation
 
+To compile with your own pre-configured dev-env:
 ```
 make DEBUG=1  # compile optionally with PRINTF
 make NETWORK=testnet  # compile app for testnet
 make load     # load the app on the Nano using ledgerblue
 ```
+
+To compile with the builder container:
+- build:
+    `make -f .dev.Makefile build`
+- clean:
+    `make -f .dev.Makefile clean`
+
+Build linter with `make -f .dev.Makefile lint-build` and you can use the same linter (and linter configurations) as the CI using the commands:
+- `make -f .dev.Makefile lint`
+- `make -f .dev.Makefile lint-fix`
+
+To start a fully configured dev-env inside docker run `make -f .dev.Makefile builder`.
+Now you can use the normal Makefile commands (including loading on the Ledger Nano S).
 
 ## Documentation
 
