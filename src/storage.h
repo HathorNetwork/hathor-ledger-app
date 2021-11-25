@@ -16,3 +16,8 @@ uint32_t get_secret(void);
  * @returns uint32_t the new internal secret seed;
  */
 uint32_t generate_secret(void);
+
+/**
+ * Toggle and save show path option.
+ */
+void toggle_show_path(void);
