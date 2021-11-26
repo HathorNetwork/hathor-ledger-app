@@ -71,7 +71,6 @@ UX_FLOW(ux_menu_settings_flow,
         FLOW_LOOP);
 
 void ui_menu_settings() {
-
     strcpy(g_path_state, N_storage.settings.show_path ? "on" : "off");
 
     ux_flow_init(0, ux_menu_settings_flow, NULL);
