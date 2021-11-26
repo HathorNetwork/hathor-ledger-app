@@ -37,3 +37,9 @@ extern io_state_e G_io_state;
  * Global context for user requests.
  */
 extern global_ctx_t G_context;
+
+/**
+ * Persistent Storage
+ */
+extern const internalStorage_t N_storage_real;
+#define N_storage (*(volatile internalStorage_t*) PIC(&N_storage_real))

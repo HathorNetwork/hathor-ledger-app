@@ -113,3 +113,11 @@ typedef struct {
     request_type_e req_type;  /// user request
     bip32_path_t bip32_path;
 } global_ctx_t;
+
+/**
+ * Internal storage structure
+ */
+
+typedef struct internalStorage_t {
+    uint32_t secret;
+} internalStorage_t;
