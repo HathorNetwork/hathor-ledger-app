@@ -1,7 +1,7 @@
-from app_client.transaction import *
+from app_client.transaction import TxInput, TxOutput, Transaction
 
 
-def test_sign_tx(cmd, button):
+def test_sign_tx(cmd):
     bip32_path: str = "m/44'/280'/0'/0/0"
 
     script = b''.join([
@@ -16,8 +16,6 @@ def test_sign_tx(cmd, button):
 
     tx = Transaction(1, tokens, inputs, outputs)
 
-    signatures = cmd.sign_tx(button=button,
-                             transaction=tx,
-                             has_change=False)
+    signatures = cmd.sign_tx(tx, has_change=False)
 
     assert len(signatures) == 1

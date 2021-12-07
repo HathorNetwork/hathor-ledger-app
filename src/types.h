@@ -3,8 +3,11 @@
 #include <stddef.h>  // size_t
 #include <stdint.h>  // uint*_t
 
-#include "os.h"
+#ifndef TEST
 #include "cx.h"
+#else
+#include "stubs.h"
+#endif
 
 #include "constants.h"
 #include "transaction/types.h"

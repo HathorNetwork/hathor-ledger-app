@@ -3,8 +3,11 @@
 #include <stddef.h>   // size_t
 #include <string.h>   // memset, explicit_bzero
 
-#include "os.h"
+#ifndef TEST
 #include "cx.h"
+#else
+#include "stubs.h"
+#endif
 
 #include "get_xpub.h"
 

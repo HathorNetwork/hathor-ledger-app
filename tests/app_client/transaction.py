@@ -92,46 +92,29 @@ class Transaction:
         self.inputs = inputs
         self.outputs = outputs
 
-    def serialize(self, prefix: bytes, max_len: int) -> Iterator[Tuple[int, bytes]]:
+    def serialize(self) -> bytes:
         ''' This serialize returns the number of complete outputs on each chunk
             this is imperative for testing, we need to know how many outputs to confirm
         '''
         cdata = b''.join([
-            prefix,
             self.tx_version.to_bytes(2, byteorder='big'),
             len(self.tokens).to_bytes(1, byteorder='big'),
             len(self.inputs).to_bytes(1, byteorder='big'),
             len(self.outputs).to_bytes(1, byteorder='big'),
         ])
-        if len(cdata) > max_len:
-            yield 0, cdata[:max_len]
-            cdata = cdata[max_len:]
 
         for token in self.tokens:
             cdata = b''.join([cdata, token])
-            if len(cdata) > max_len:
-                yield 0, cdata[:max_len]
-                cdata = cdata[max_len:]
 
         for tx_input in self.inputs:
             input_bytes = tx_input.serialize()
             cdata = b''.join([cdata, input_bytes])
-            if len(cdata) > max_len:
-                yield 0, cdata[:max_len]
-                cdata = cdata[max_len:]
 
-        output_num = 0
         for tx_output in self.outputs:
             output_bytes = tx_output.serialize()
             cdata = b''.join([cdata, output_bytes])
-            if len(cdata) > max_len:
-                yield output_num, cdata[:max_len]
-                cdata = cdata[max_len:]
-                output_num = 0
-            output_num += 1
 
-        if len(cdata) != 0:
-            yield output_num, cdata
+        return cdata
 
     @classmethod
     def from_bytes(cls, hexa: Union[bytes, BytesIO]):

@@ -1,24 +1,20 @@
 import struct
 from typing import Tuple, List
 
-from ledgercomm import Transport
-
 from app_client.cmd_builder import CommandBuilder, InsType
-from app_client.button import Button
 from app_client.exception import DeviceException
 from app_client.transaction import Transaction
+from app_client.transport import ApduTransport
 
 
 class Command:
-    def __init__(self,
-                 transport: Transport,
-                 debug: bool = False) -> None:
-        self.transport = transport
+    def __init__(self, transport: ApduTransport, debug: bool = False) -> None:
         self.builder = CommandBuilder(debug=debug)
         self.debug = debug
+        self.transport = transport
 
     def get_app_and_version(self) -> Tuple[str, str]:
-        sw, response = self.transport.exchange_raw(
+        sw, response = self.transport.exchange_apdu_raw(
             self.builder.get_app_and_version()
         )  # type: int, bytes
 
@@ -46,9 +42,9 @@ class Command:
         return app_name, version
 
     def get_version(self) -> Tuple[bytes, int, int, int]:
-        sw, response = self.transport.exchange_raw(
+        sw, response = self.transport.exchange_apdu_raw(
             self.builder.get_version()
-        )  # type: int, bytes
+        )
 
         if sw != 0x9000:
             raise DeviceException(error_code=sw, ins=InsType.INS_GET_VERSION)
@@ -65,32 +61,21 @@ class Command:
 
         return htr, major, minor, patch
 
-    def get_address(self, button: Button, bip32_path: str) -> str:
-        self.transport.send_raw(self.builder.get_address(bip32_path))
+    def get_address(self, bip32_path: str) -> str:
 
-        # Go to approve screen (screen loops back)
-        button.left_click()
-        button.left_click()
-        # Approve
-        button.both_click()
-
-        sw, response = self.transport.recv()  # type: int, bytes
+        sw, response = self.transport.exchange_apdu_raw(
+            self.builder.get_address(bip32_path)
+        )
 
         if sw != 0x9000:
             raise DeviceException(error_code=sw, ins=InsType.INS_GET_ADDRESS)
 
         return
 
-    def get_xpub(self, button: Button, bip32_path: str) -> Tuple[bytes, bytes]:
-        self.transport.send_raw(self.builder.get_xpub(bip32_path=bip32_path))
-
-        # Go to approve screen (screen loops back)
-        button.left_click()
-        button.left_click()
-        # Approve
-        button.both_click()
-
-        sw, response = self.transport.recv()  # type: int, bytes
+    def get_xpub(self, bip32_path: str) -> Tuple[bytes, bytes]:
+        sw, response = self.transport.exchange_apdu_raw(
+            self.builder.get_xpub(bip32_path=bip32_path)
+        )
 
         if sw != 0x9000:
             raise DeviceException(error_code=sw, ins=InsType.INS_GET_XPUB)
@@ -113,44 +98,35 @@ class Command:
 
         return pub_key, chain_code, fingerprint
 
-    def sign_tx(self, button: Button, transaction: Transaction, has_change: bool = False, change_index:int = None, change_path: str = None) -> List[bytes]:
-        def handle_data(num_outputs: int, is_last: bool):
-            for _ in range(num_outputs):
-                # Go to approve screen (screen loops back)
-                button.left_click()
-                button.left_click()
-                # Approve
-                button.both_click()
-
-            if is_last:
-                # One more time for Send Transaction confirmation
-                # Go to approve screen (screen loops back)
-                button.left_click()
-                button.left_click()
-                # Approve
-                button.both_click()
+    def sign_tx(
+            self, transaction: Transaction,
+            has_change: bool = False, change_index: int = None, change_path: str = None,
+            ) -> List[bytes]:
 
         sw: int
         response: bytes = b""
 
         signatures: List[bytes] = []
-        stage = 0
-        for is_last, num_outputs, chunk in self.builder.sign_tx(transaction=transaction, has_change=has_change, change_index=change_index, bip32_path=change_path):
-            self.transport.send_raw(chunk)
-
-            if stage == 0:
-                handle_data(num_outputs, is_last)
-
-            sw, response = self.transport.recv()  # type: int, bytes
+        for chunk in self.builder.sign_tx_send_data(transaction=transaction, has_change=has_change, change_index=change_index, bip32_path=change_path):
+            sw, response = self.transport.exchange_apdu_raw(chunk)
             print('\n', 'ledger_resp:', sw, response)
 
             if sw != 0x9000:
                 raise DeviceException(error_code=sw, ins=InsType.INS_SIGN_TX)
 
-            if stage == 1:
-                signatures.append(response)
+        # ask for signatures
+        for chunk in self.builder.sign_tx_signatures(transaction):
+            sw, response = self.transport.exchange_apdu_raw(chunk)
+            print('\n', 'ledger_resp:', sw, response)
 
-            if is_last:
-                stage += 1
+            if sw != 0x9000:
+                raise DeviceException(error_code=sw, ins=InsType.INS_SIGN_TX)
+
+            signatures.append(response)
+
+        sw, response = self.transport.exchange_apdu_raw(self.builder.sign_tx_end())
+
+        if sw != 0x9000:
+            raise DeviceException(error_code=sw, ins=InsType.INS_SIGN_TX)
 
         return signatures

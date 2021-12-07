@@ -1,6 +1,10 @@
 #pragma once
 
+#ifndef TEST
 #include "os.h"
+#else
+#include "stubs.h"
+#endif
 
 #include "../common/macros.h"
 

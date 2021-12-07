@@ -4,8 +4,12 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "os.h"
+#ifndef TEST
 #include "ux.h"
+#include "cx.h"
+#else
+#include "stubs.h"
+#endif
 #include "glyphs.h"
 
 #include "display.h"
@@ -204,7 +208,8 @@ void prepare_display_output() {
     // set g_ammount (HTR value)
     memset(g_amount, 0, sizeof(g_amount));
     strcpy(g_amount, "HTR ");
-    format_fpu64(g_amount + 4, sizeof(g_amount) - 5, output.value, 2);
+    // format_fpu64(g_amount + 4, sizeof(g_amount) - 5, output.value, 2);
+    format_value(output.value, g_amount + 4);
 }
 
 void ui_confirm_output(bool choice) {
@@ -294,7 +299,6 @@ int ui_display_xpub_confirm() {
  *  #2 screen: display BIP32 Path (if enabled)
  *  #3 screen: display address
  *  #4 screen: approve button
- *  #5 screen: reject button
  */
 UX_FLOW(ux_display_address_flow,
         &ux_display_confirm_addr_step,

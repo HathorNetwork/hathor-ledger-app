@@ -3,10 +3,13 @@
 
 #include "deserialize.h"
 
+#ifndef TEST
 #include "os.h"  // THROW
-// #include "cx.h"
+#else
+#include "stubs.h"
+#endif
+
 #include "../sw.h"
-// #include "../common/read.h"
 #include "constants.h"
 #include "../common/buffer.h"
 #include "types.h"

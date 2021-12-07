@@ -2,10 +2,9 @@ from pathlib import Path
 
 import pytest
 
-from ledgercomm import Transport
-
 from app_client.cmd import Command
-from app_client.button import ButtonTCP, ButtonFake
+from app_client.automation import CommandAutomation, FakeAutomation
+from app_client.transport import TransportAPI
 
 
 def pytest_addoption(parser):
@@ -13,6 +12,10 @@ def pytest_addoption(parser):
                      action="store_true")
     parser.addoption("--headless",
                      action="store_true")
+    parser.addoption(
+            "--url",
+            help="Speculos API endpoint",
+            default="http://localhost:5000/")
 
 
 @pytest.fixture(scope="module")
@@ -29,6 +32,11 @@ def sw_h_path():
 
 
 @pytest.fixture(scope="session")
+def server(pytestconfig):
+    return pytestconfig.getoption("url")
+
+
+@pytest.fixture(scope="session")
 def hid(pytestconfig):
     return pytestconfig.getoption("hid")
 
@@ -38,30 +46,28 @@ def headless(pytestconfig):
     return pytestconfig.getoption("headless")
 
 
-@pytest.fixture(scope="module")
-def button(headless):
+@pytest.fixture(scope="session", autouse=True)
+def automation(headless, server):
     if headless:
-        button_client = ButtonTCP(server="127.0.0.1", port=42000)
+        ca = CommandAutomation(server)
     else:
-        button_client = ButtonFake()
-
-    yield button_client
-
-    button_client.close()
+        ca = FakeAutomation()
+    ca.set_accept_all()
+    yield ca
+    ca.close()
 
 
 @pytest.fixture(scope="session")
-def cmd(hid):
-    transport = (Transport(interface="hid", debug=True)
-                 if hid else Transport(interface="tcp",
-                                       server="127.0.0.1",
-                                       port=9999,
-                                       debug=True))
+def transport(server):
+    transport = TransportAPI(server)
+    yield transport
+    transport.close()
+
+
+@pytest.fixture(scope="session")
+def cmd(transport):
     command = Command(
-        transport=transport,
-        debug=True
-    )
+            transport=transport,
+            debug=True)
 
     yield command
-
-    command.transport.close()

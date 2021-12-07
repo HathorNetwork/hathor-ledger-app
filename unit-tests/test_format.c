@@ -95,11 +95,78 @@ static void test_format_hex(void **state) {
     assert_int_equal(-1, format_hex(address, sizeof(address), output, sizeof(address)));
 }
 
+static void test_format_value(void **state) {
+    (void) state;
+
+    char temp[22] = {0};
+    uint64_t value = 0;  // 245 => 2.45
+
+    format_value(value, temp);
+    assert_string_equal(temp, "0.00");
+
+    value = (uint64_t) 45;
+    memset(temp, 0, sizeof(temp));
+    format_value(value, temp);
+    assert_string_equal(temp, "0.45");
+
+    value = (uint64_t) 100;
+    memset(temp, 0, sizeof(temp));
+    format_value(value, temp);
+    assert_string_equal(temp, "1.00");
+
+    value = (uint64_t) 100010ull;
+    memset(temp, 0, sizeof(temp));
+    format_value(value, temp);
+    assert_string_equal(temp, "1,000.10");
+
+    value = (uint64_t) 100000002ull;
+    memset(temp, 0, sizeof(temp));
+    format_value(value, temp);
+    assert_string_equal(temp, "1,000,000.02");
+}
+
+static void test_itoa(void **state) {
+    (void) state;
+
+    char temp[22] = {0};
+
+    int value = 0;
+    itoa(value, temp, 10);
+    assert_string_equal(temp, "0");
+
+    value = (int) 27;
+    memset(temp, 0, sizeof(temp));
+    itoa(value, temp, 10);
+    assert_string_equal(temp, "27");
+
+    value = (int) 2147483647;  // INT_MAX
+    memset(temp, 0, sizeof(temp));
+    itoa(value, temp, 10);
+    assert_string_equal(temp, "2147483647");
+
+    value = (int) -2147483648;  // MIN_INT64
+    memset(temp, 0, sizeof(temp));
+    itoa(value, temp, 10);
+    assert_string_equal(temp, "-2147483648");
+
+    value = (int) 27;
+    memset(temp, 0, sizeof(temp));
+    itoa(value, temp, 2);
+    assert_string_equal(temp, "11011");
+
+    value = (int) 51966;
+    memset(temp, 0, sizeof(temp));
+    itoa(value, temp, 16);
+    assert_string_equal(temp, "cafe");
+}
+
 int main() {
     const struct CMUnitTest tests[] = {cmocka_unit_test(test_format_i64),
                                        cmocka_unit_test(test_format_u64),
                                        cmocka_unit_test(test_format_fpu64),
-                                       cmocka_unit_test(test_format_hex)};
+                                       cmocka_unit_test(test_format_hex),
+                                       cmocka_unit_test(test_format_value),
+                                       cmocka_unit_test(test_itoa)};
 
     return cmocka_run_group_tests(tests, NULL, NULL);
 }

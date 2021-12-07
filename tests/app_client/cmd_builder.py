@@ -176,7 +176,7 @@ class CommandBuilder:
                               p2=0x00,
                               cdata=cdata)
 
-    def sign_tx(self, transaction: Transaction, has_change: bool = False, change_index: int = None, bip32_path: str = None) -> Iterator[Tuple[bool, int, bytes]]:
+    def sign_tx_send_data(self, transaction: Transaction, has_change: bool = False, change_index: int = None, bip32_path: str = None) -> Iterator[bytes]:
         """Command builder for INS_SIGN_TX.
 
         Parameters
@@ -192,8 +192,6 @@ class CommandBuilder:
 
         Yields
         -------
-        bool
-            Is last packet of the stage
         bytes
             APDU command chunk for INS_SIGN_TX.
 
@@ -209,21 +207,18 @@ class CommandBuilder:
             ])
         else:
             cdata = b'\x00'
+        cdata = b''.join([cdata, transaction.serialize()])
+        for i, (is_last, chunk) in enumerate(chunkify(cdata, MAX_APDU_LEN)):
+            yield self.serialize(
+                    cla=self.CLA,
+                    ins=InsType.INS_SIGN_TX,
+                    p1=0x00,
+                    p2=i,
+                    cdata=chunk)
 
-        # Send data
-        sent_outputs = 0
-        for i, (num_outputs, chunk) in enumerate(transaction.serialize(cdata, MAX_APDU_LEN)):
-            sent_outputs += num_outputs
-            is_last = sent_outputs == len(transaction.outputs)
-            print('\n', 'data:', i, num_outputs, chunk)
-            yield is_last, num_outputs, self.serialize(cla=self.CLA,
-                                                    ins=InsType.INS_SIGN_TX,
-                                                    p1=0x00,
-                                                    p2=i,
-                                                    cdata=chunk)
+    def sign_tx_signatures(self, transaction: Transaction) -> Iterator[bytes]:
 
         # Ask for input signatures
-        num_inputs = len(transaction.inputs)
         for i, tx_input in enumerate(transaction.inputs):
             assert tx_input.bip32_path is not None
             bip32_paths: List[bytes] = bip32_path_from_string(tx_input.bip32_path)
@@ -232,11 +227,12 @@ class CommandBuilder:
                 len(bip32_paths).to_bytes(1, byteorder="big"),
                 *bip32_paths
             ])
-            yield (i + 1 == num_inputs), 0, self.serialize(cla=self.CLA,
-                                                        ins=InsType.INS_SIGN_TX,
-                                                        p1=0x01,
-                                                        p2=0x00,
-                                                        cdata=input_data)
+            yield self.serialize(
+                    cla=self.CLA,
+                    ins=InsType.INS_SIGN_TX,
+                    p1=0x01,
+                    p2=0x00,
+                    cdata=input_data)
 
-        # End sign tx command
-        yield True, 0, self.serialize(cla=self.CLA, ins=InsType.INS_SIGN_TX, p1=0x02, p2=0x00, cdata=b'')
+    def sign_tx_end(self) -> bytes:
+        return self.serialize(cla=self.CLA, ins=InsType.INS_SIGN_TX, p1=0x02, p2=0x00, cdata=b'')

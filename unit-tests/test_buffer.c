@@ -88,26 +88,29 @@ static void test_buffer_read(void **state) {
     assert_int_equal(fourth, 1012478732780767239);     // 0x0E 0x0D 0x0C 0x0B 0x0A 0x09 0x08 0x07
     assert_true(buffer_seek_set(&buf, 8));             // seek at offset 8
     assert_false(buffer_read_u64(&buf, &fourth, BE));  // can't read 8 bytes
+}
 
-    // clang-format off
-    uint8_t temp_varint[] = {
-        0xFC, // 1 byte varint
-        0xFD, 0x00, 0x01, // 2 bytes varint
-        0xFE, 0x00, 0x01, 0x02, 0x03,  // 4 bytes varint
-        0xFF, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 // 8 bytes varint
+static void test_buffer_bip32(void **state) {
+    (void) state;
 
+    uint8_t v = 0;
+    uint32_t expected[5] = {0x8000002C, 0x80000118, 0x80000000, 0, 10};
+    uint8_t temp[21] = {
+        0x05, // length
+        0x80, 0x00, 0x00, 0x2C, // 44'
+        0x80, 0x00, 0x01, 0x18, // 280'
+        0x80, 0x00, 0x00, 0x00, // 0'
+        0x00, 0x00, 0x00, 0x00, // 0'
+        0x00, 0x00, 0x00, 0x0a // 10
     };
-    buffer_t buf_varint = {.ptr = temp_varint, .size = sizeof(temp_varint), .offset = 0};
-    uint64_t varint = 0;
-    assert_true(buffer_read_varint(&buf_varint, &varint));
-    assert_int_equal(varint, 0xFC);
-    assert_true(buffer_read_varint(&buf_varint, &varint));
-    assert_int_equal(varint, 0x0100);
-    assert_true(buffer_read_varint(&buf_varint, &varint));
-    assert_int_equal(varint, 0x03020100);
-    assert_true(buffer_read_varint(&buf_varint, &varint));
-    assert_int_equal(varint, 0x0706050403020100);
-    assert_false(buffer_read_varint(&buf_varint, &varint));
+    buffer_t buf = {.ptr = temp, .size = sizeof(temp), .offset = 0};
+    bip32_path_t out = { .path = {0}, .length = 0 };
+    bool b = buffer_read_bip32_path(&buf, &out);
+    assert_true(b);
+    assert_int_equal(out.length, 5);
+    assert_memory_equal(out.path, expected, 5);
+    assert_false(buffer_read_u8(&buf, &v));  // can't read 1 byte
+
 }
 
 static void test_buffer_copy(void **state) {
@@ -148,6 +151,7 @@ int main() {
     const struct CMUnitTest tests[] = {cmocka_unit_test(test_buffer_can_read),
                                        cmocka_unit_test(test_buffer_seek),
                                        cmocka_unit_test(test_buffer_read),
+                                       cmocka_unit_test(test_buffer_bip32),
                                        cmocka_unit_test(test_buffer_copy),
                                        cmocka_unit_test(test_buffer_move)};
 
