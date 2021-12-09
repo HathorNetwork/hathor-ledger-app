@@ -198,6 +198,25 @@ void itoa(int value, char *result, int base) {
     }
 }
 
+void format_clean_special_chars(char *message, char *out) {
+    uint8_t msglen = strlen(message);
+    int j = 0;
+    for (int i = 0; i < msglen; i++) {
+        uint8_t val = (uint8_t)message[i];
+        if (val < 0x80u) {
+            out[j++] = message[i];
+            continue;
+        }
+        out[j++] = '[';
+        out[j++] = ']';
+        if ((val >> 3) == 30) i += 4; // 4 bytes
+        if ((val >> 4) == 14) i += 3; // 3 bytes
+        if ((val >> 5) == 6) i += 2;  // 2 bytes
+    }
+    out[j] = '\0';
+}
+
+
 // void utoa(uint64_t value, char *s) {
 //     // small optimization
 //     if (value < 10) {
