@@ -21,11 +21,6 @@
 #define B58_ADDRESS_LEN 35
 
 /**
- * Token UID length
- */
-#define TOKEN_UID_LEN 32
-
-/**
  * Tx input length
  */
 #define TX_INPUT_LEN 35
@@ -44,3 +39,16 @@
  * Max custom tokens allowed on a transaction
  */
 #define TX_MAX_TOKENS 10
+
+/**
+ * Token data mask for authority output
+ * If the first bit is set the output is an authority output
+ */
+#define TOKEN_DATA_AUTHORITY_MASK 0x80u
+/**
+ * Token data mask for token index
+ *
+ * index 0 means the token is HTR
+ * Any other means that index-1 is the index of token on the token array
+ */
+#define TOKEN_DATA_INDEX_MASK 0x7Fu

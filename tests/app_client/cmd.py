@@ -133,8 +133,6 @@ class Command:
         return signatures
 
     def sign_token_data(self, token: Token) -> bytes:
-        print('cmd ====')
-        print(token.symbol, token.name)
         sw, response = self.transport.exchange_apdu_raw(
             self.builder.sign_token_data(token)
         )

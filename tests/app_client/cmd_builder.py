@@ -243,8 +243,6 @@ class CommandBuilder:
         return self.serialize(cla=self.CLA, ins=InsType.INS_SIGN_TX, p1=0x02, p2=0x00, cdata=b'')
 
     def sign_token_data(self, token: Token) -> bytes:
-        print('cmd builder ====')
-        print(token.serialize())
         return self.serialize(
                 cla=self.CLA,
                 ins=InsType.INS_SIGN_TOKEN_DATA,
@@ -253,8 +251,6 @@ class CommandBuilder:
         )
 
     def send_token_with_signature(self, ins: InsType, token: Token, signature: bytes, num: int=0) -> bytes:
-        print('cmd builder ====')
-        print(token.serialize(signature=signature))
         return self.serialize(
                 cla=self.CLA,
                 ins=ins, p1=num, p2=0x00,

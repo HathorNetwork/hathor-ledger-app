@@ -248,8 +248,23 @@ void prepare_display_output() {
 
     // set g_ammount (HTR value)
     memset(g_amount, 0, sizeof(g_amount));
-    strcpy(g_amount, "HTR ");
-    format_value(output.value, g_amount + 4);
+    int8_t token_index = output.token_data & TOKEN_DATA_INDEX_MASK;
+    char symbol[MAX_TOKEN_SYMBOL_LEN + 1];
+    uint8_t symbol_len;
+
+    // token_index == 0 means HTR, else use token_index-1 as index on the tokens array
+    if (token_index == 0) {
+        strcpy(symbol, "HTR");
+        symbol_len = 3;
+    } else {
+        // custom token
+        token_symbol_t* token = G_context.tx_info.tokens[token_index - 1];
+        strcpy(symbol, token->symbol);
+        symbol_len = strlen(token->symbol);
+    }
+    strcpy(g_amount, symbol);
+    g_amount[symbol_len] = ' ';
+    format_value(output.value, g_amount + symbol_len + 1);
 }
 
 void ui_confirm_output(bool choice) {
@@ -455,7 +470,7 @@ int ui_display_sign_token_data() {
     memmove(g_token_name, G_context.token.name, G_context.token.name_len);
     g_token_name[G_context.token.name_len] = '\0';
     // format uid
-    format_hex(G_context.token.uid, 32, g_token_uid, 65);
+    format_hex(G_context.token.uid, TOKEN_UID_LEN, g_token_uid, 65);
     // ask confirmation to sign
     g_validate_callback = &ui_action_sign_token_data;
     ux_flow_init(0, ux_display_sign_token_data, NULL);

@@ -45,10 +45,15 @@ class TxInput:
 
         return cls(tx_id, index)
 
+    def __str__(self):
+        return f"TxInput(tx_id={self.tx_id.hex()}, index={self.index}, bip32_path={self.bip32_path})"
+
 class TxOutput:
-    def __init__(self, value: int, script: bytes):
+    def __init__(self, value: int, script: bytes, token_data: int = 0, is_authority: bool = False):
         self.value = value
         self.script = script
+        # 0x80 is token authority mask
+        self.token_data = token_data | 0x80 if is_authority else token_data
 
     def serialize_value(self) -> bytes:
         if self.value & 0x80000000:
@@ -61,7 +66,7 @@ class TxOutput:
 
         return b''.join([
             self.serialize_value(),
-            b'\x00', # token data
+            self.token_data.to_bytes(1, byteorder='big'),
             script_len.to_bytes(2, byteorder='big'),
             self.script,
         ])
@@ -83,6 +88,9 @@ class TxOutput:
         script_len, script = read_var(buf)
 
         return cls(value, script)
+
+    def __str__(self):
+        return f"TxOutput(value={self.value}, token_data={self.token_data}, script={self.script.hex()})"
 
 
 class Transaction:
@@ -142,3 +150,9 @@ class Transaction:
             outputs.append(tx_output)
 
         return cls(tx_version, tokens, inputs, outputs)
+
+    def __str__(self):
+        stokens = [token.hex() for token in self.tokens]
+        sinputs = [str(inp) for inp in self.inputs]
+        soutputs = [str(outp) for outp in self.outputs]
+        return f"Transaction(tokens={stokens}, inputs={sinputs}, outputs={soutputs})"
