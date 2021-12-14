@@ -107,6 +107,18 @@ bool buffer_read_bip32_path(buffer_t *buffer, bip32_path_t *out) {
     return true;
 }
 
+bool buffer_read_bytes(buffer_t *buffer, uint8_t *out, size_t out_len, size_t len) {
+    if (len > buffer->size - buffer->offset || len > out_len) {
+        return false;
+    }
+
+    memmove(out, buffer->ptr + buffer->offset, len);
+
+    buffer_seek_cur(buffer, len);
+
+    return true;
+}
+
 bool buffer_copy(const buffer_t *buffer, uint8_t *out, size_t out_len) {
     if (buffer->size - buffer->offset > out_len) {
         return false;

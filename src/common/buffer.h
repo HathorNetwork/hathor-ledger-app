@@ -145,6 +145,24 @@ bool buffer_read_u64(buffer_t *buffer, uint64_t *value, endianness_t endianness)
  *
  */
 bool buffer_read_bip32_path(buffer_t *buffer, bip32_path_t *out);
+
+/**
+ * Read bytes from buffer.
+ *
+ * @param[in]  buffer
+ *   Pointer to input buffer struct.
+ * @param[out] out
+ *   Pointer to output byte buffer.
+ * @param[in]  out_len
+ *   Length of output byte buffer.
+ * @param[in]  len
+ *   Number of bytes being read from buffer.
+ *
+ * @return true if success, false otherwise.
+ *
+ */
+bool buffer_read_bytes(buffer_t *buffer, uint8_t *out, size_t out_len, size_t len);
+
 /**
  * Copy bytes from buffer without moving offset.
  *

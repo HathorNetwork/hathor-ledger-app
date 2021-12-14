@@ -10,6 +10,7 @@
 #endif
 
 #include "constants.h"
+#include "token/types.h"
 #include "transaction/types.h"
 #include "common/bip32.h"
 
