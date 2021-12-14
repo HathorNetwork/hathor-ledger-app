@@ -4,7 +4,6 @@
 
 #include "../common/buffer.h"
 
-
 bool parse_token(buffer_t *buf, token_t *token) {
     // read uid, len(symbol), symbol, len(name), name, version
     if (!(buffer_read_bytes(buf, token->uid, TOKEN_UID_LEN, TOKEN_UID_LEN) &&
@@ -19,13 +18,13 @@ bool parse_token(buffer_t *buf, token_t *token) {
 
     // check name and symbol for printable characters
     // This will fail if emoji or non-ascii characters are present
-    for(int i=0; i<token->symbol_len; i++) {
-        if ((uint8_t)token->symbol[i] < 0x80u) continue;
+    for (int i = 0; i < token->symbol_len; i++) {
+        if ((uint8_t) token->symbol[i] < 0x80u) continue;
         return false;
     }
 
-    for(int i=0; i<token->name_len; i++) {
-        if ((uint8_t)token->name[i] < 0x80u) continue;
+    for (int i = 0; i < token->name_len; i++) {
+        if ((uint8_t) token->name[i] < 0x80u) continue;
         return false;
     }
 

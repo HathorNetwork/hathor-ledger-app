@@ -23,7 +23,11 @@
  * @return error code if any error occurs (0 means no error)
  *
  */
-uint32_t sign_token(uint32_t secret, token_t *token, uint8_t *signature, size_t sig_len, size_t *out_len);
+uint32_t sign_token(uint32_t secret,
+                    token_t *token,
+                    uint8_t *signature,
+                    size_t sig_len,
+                    size_t *out_len);
 
 /**
  * Verify a token signature

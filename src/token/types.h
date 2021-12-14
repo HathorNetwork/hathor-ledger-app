@@ -3,9 +3,9 @@
 #include <stddef.h>  // size_t
 #include <stdint.h>  // uint*_t
 
-#define TOKEN_UID_LEN 32
-#define TOKEN_SYMBOL_LEN 20
-#define TOKEN_NAME_LEN 120
+#define TOKEN_UID_LEN       32
+#define TOKEN_SYMBOL_LEN    20
+#define TOKEN_NAME_LEN      120
 #define TOKEN_SIGNATURE_LEN 100
 
 typedef uint8_t token_uid[TOKEN_UID_LEN];
