@@ -1,6 +1,8 @@
-#include "parser.h"
+#include "signature.h"
 
+#include "types.h"
 #include "../common/bip32.h"
+#include "hathor.h"
 
 #include "cx.h"
 
@@ -30,7 +32,6 @@ void init_token_signature_message(uint32_t secret, token_t *token, uint8_t *out)
     // message == uid + symbol + name + version + salt
     uint8_t message[TOKEN_UID_LEN + TOKEN_SYMBOL_LEN + TOKEN_NAME_LEN + 1 + 32];
     uint8_t salt[32];
-    uint32_t info = 0;
 
     size_t offset = 0;
     // add token uid
@@ -71,7 +72,9 @@ uint32_t sign_token(uint32_t secret,
 
     // init private_key
     gen_signer_path(secret, path, &path_len);
-    if (derive_private_key_no_throw(&private_key, chain_code, path, path_len)) return 0;
+
+    derive_private_key(&private_key, chain_code, path, path_len);
+
     uint32_t err = cx_ecdsa_sign_no_throw(&private_key,
                                           CX_RND_RFC6979,
                                           CX_SHA256,
@@ -101,7 +104,8 @@ bool verify_token_signature(uint32_t secret, token_t *token, uint8_t *signature,
 
     // init private_key
     gen_signer_path(secret, path, &path_len);
-    if (derive_private_key_no_throw(&private_key, chain_code, path, path_len)) return 0;
+
+    derive_private_key(&private_key, chain_code, path, path_len);
     init_public_key(&private_key, &public_key);
 
     sig_ok = cx_ecdsa_verify_no_throw(&public_key, hash, 32, signature, sig_len);
