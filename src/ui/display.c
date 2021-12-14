@@ -28,6 +28,9 @@ static action_validate_cb g_validate_callback;
 static char g_amount[30];
 static char g_output_index[10];
 static char g_address[B58_ADDRESS_LEN];
+static char g_token_symbol[6];
+static char g_token_name[31];
+static char g_token_uid[65];
 #ifdef UI_SHOW_PATH
 static char g_bip32_path[60];
 
@@ -112,6 +115,48 @@ UX_STEP_NOCB(ux_display_confirm_step,
                  &C_icon_eye,
                  "Confirm",
                  "access?",
+             });
+
+UX_STEP_NOCB(ux_display_reset_token_signatures_alert,
+             pn,
+             {
+                 &C_icon_eye,
+                 "Reset token signatures",
+             });
+
+UX_STEP_NOCB(ux_display_reset_token_signatures_warning,
+             bn,
+             {
+                 "Reset token signatures",
+                 "All tokens will be reset",
+             });
+
+UX_STEP_NOCB(ux_display_token_data_0,
+             pn,
+             {
+                 &C_icon_eye,
+                 "Confirm token data",
+             });
+
+UX_STEP_NOCB(ux_display_token_data_1_symbol,
+             bnnn_paging,
+             {
+                 .title = "Symbol",
+                 .text = g_token_symbol,
+             });
+
+UX_STEP_NOCB(ux_display_token_data_2_name,
+             bnnn_paging,
+             {
+                 .title = "Name",
+                 .text = g_token_name,
+             });
+
+UX_STEP_NOCB(ux_display_token_data_3_uid,
+             bnnn_paging,
+             {
+                 .title = "UID",
+                 .text = g_token_uid,
              });
 
 // Display a "Processing" message and allow user to stop processing and quit to menu
@@ -352,5 +397,93 @@ int ui_display_confirm_address() {
 
     ux_flow_init(0, ux_display_address_flow, NULL);
 
+    return 0;
+}
+
+// Reset token signatures: ui_display_confirm_address
+
+void ui_confirm_reset_token_signatures(bool choice) {
+    if (choice) {
+        // TODO: reset secret
+        io_send_sw(SW_OK);
+    } else {
+        // return error
+        io_send_sw(SW_DENY);
+    }
+    ui_menu_main();
+}
+
+/* FLOW to display confirm address:
+ *  #1 screen: eye icon + "Reset token signatures"
+ *  #2 screen: warning message
+ *  #3 screen: approve button
+ *  #4 screen: reject button
+ */
+UX_FLOW(ux_display_reset_token_signatures,
+        &ux_display_reset_token_signatures_alert,
+        &ux_display_reset_token_signatures_warning,
+        &ux_display_approve_step,
+        &ux_display_reject_step,
+        FLOW_LOOP);
+
+int ui_display_reset_token_signatures_confirm() {
+    g_validate_callback = &ui_confirm_reset_token_signatures;
+    ux_flow_init(0, ux_display_reset_token_signatures, NULL);
+    return 0;
+}
+
+/* FLOW to sign token data:
+ *  #1 screen: eye icon + "Confirm token data"
+ *  #2 screen: symbol
+ *  #2 screen: name
+ *  #2 screen: uid
+ *  #3 screen: approve button
+ *  #4 screen: reject button
+ */
+// TODO: change approve to next step where we will display the uid 8 chars at a time
+UX_FLOW(ux_display_sign_token_data,
+        &ux_display_token_data_0,
+        &ux_display_token_data_1_symbol,
+        &ux_display_token_data_2_name,
+        &ux_display_token_data_3_uid,
+        &ux_display_approve_step,
+        &ux_display_reject_step,
+        FLOW_LOOP);
+
+/* FLOW to sign token data:
+ *  #1 screen: uid 0-7
+ *  #2 screen: uid 8-15
+ *  #3 screen: uid 16-23
+ *  #4 screen: uid 24-31
+ *  #5 screen: uid 32-29
+ *  #6 screen: uid 40-47
+ *  #7 screen: uid 48-55
+ *  #8 screen: uid 56-63
+ *  #10 screen: approve button
+ *  #11 screen: reject button
+ */
+// XXX: or have 1 step with 8 chars that the action is to load the next 8
+//      and when all are over, approve or reject
+// UX_FLOW(ux_display_token_uid,
+//         &ux_display_token_data_0,
+//         &ux_display_token_data_1_symbol,
+//         &ux_display_token_data_2_name,
+//         &ux_display_token_data_3_uid,
+//         &ux_display_approve_step,
+//         &ux_display_reject_step);
+
+int ui_display_sign_token_data() {
+    // show token information
+    // copy symbol
+    memmove(g_token_symbol, G_context.token.symbol, G_context.token.symbol_len);
+    g_token_symbol[G_context.token.symbol_len] = '\0';
+    // copy name
+    memmove(g_token_name, G_context.token.name, G_context.token.name_len);
+    g_token_name[G_context.token.name_len] = '\0';
+    // copy uid
+    format_hex(G_context.token.uid, 32, g_token_uid, 65);
+    // ask confirmation to sign
+    g_validate_callback = &ui_action_sign_token_data;
+    ux_flow_init(0, ux_display_sign_token_data, NULL);
     return 0;
 }

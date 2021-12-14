@@ -8,13 +8,17 @@
 #define TOKEN_NAME_LEN      30  // ascii, 150 if utf-8
 #define TOKEN_SIGNATURE_LEN 100
 
-typedef uint8_t token_uid[TOKEN_UID_LEN];
-
+typedef uint8_t token_uid_t[TOKEN_UID_LEN];
 typedef struct {
-    token_uid uid;
+    token_uid_t uid;
     uint8_t symbol_len;
     uint8_t symbol[TOKEN_SYMBOL_LEN];
     uint8_t name_len;
     uint8_t name[TOKEN_NAME_LEN];
     uint8_t version;
 } token_t;
+
+typedef struct {
+    token_uid_t uid;
+    char symbol[TOKEN_SYMBOL_LEN + 1];
+} token_symbol_t;

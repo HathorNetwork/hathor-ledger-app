@@ -34,3 +34,8 @@
  * Pubkey hash length
  */
 #define PUBKEY_HASH_LEN 20
+
+/**
+ * Max custom tokens allowed on a transaction
+ */
+#define TX_MAX_TOKENS 10

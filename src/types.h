@@ -27,10 +27,14 @@ typedef enum {
  * Enumeration with expected INS of APDU commands.
  */
 typedef enum {
-    GET_VERSION = 0x03,  /// version of the application
-    GET_ADDRESS = 0x04,  /// get address from BIP32 path
-    GET_XPUB = 0x05,     /// XPUB of corresponding BIP32 path
-    SIGN_TX = 0x06       /// sign transaction with BIP32 path
+    GET_VERSION = 0x03,             /// version of the application
+    GET_ADDRESS = 0x04,             /// get address from BIP32 path
+    GET_XPUB = 0x05,                /// XPUB of corresponding BIP32 path
+    SIGN_TX = 0x06,                 /// sign transaction with BIP32 path
+    SIGN_TOKEN_DATA = 0x07,         /// sign token data
+    SEND_TOKEN_DATA = 0x08,         /// send token data
+    VERIFY_TOKEN_SIGNATURE = 0x09,  /// verify token signature
+    RESET_TOKEN_SIGNATURES = 0x0a,  /// invalidate all token signatures
 } command_e;
 
 /**
@@ -105,6 +109,11 @@ typedef struct {
     tx_output_t decoded_output;
 } sign_tx_ctx_t;
 
+typedef struct {
+    uint8_t offset;
+    token_symbol_t tokens[TX_MAX_TOKENS];
+} token_data_ctx_t;
+
 /**
  * Structure for global context.
  */
@@ -116,6 +125,7 @@ typedef struct {
     };
     request_type_e req_type;  /// user request
     bip32_path_t bip32_path;
+    token_t token;
 } global_ctx_t;
 
 /**

@@ -119,25 +119,20 @@ int format_hex(const uint8_t *in, size_t in_len, char *out, size_t out_len) {
     }
 
     const char hex[] = "0123456789ABCDEF";
-    size_t i = 0;
     int written = 0;
+    uint8_t high_nibble, low_nibble;
 
-    while (i < in_len && (i * 2 + (2 + 1)) <= out_len) {
-        uint8_t high_nibble = (in[i] & 0xF0) >> 4;
-        *out = hex[high_nibble];
-        out++;
+    for (size_t i = 0; i < in_len; i++) {
+        high_nibble = (in[i] & 0xF0) >> 4;
+        low_nibble = in[i] & 0x0F;
 
-        uint8_t low_nibble = in[i] & 0x0F;
-        *out = hex[low_nibble];
-        out++;
-
-        i++;
-        written += 2;
+        out[written++] = hex[high_nibble];
+        out[written++] = hex[low_nibble];
     }
 
-    *out = '\0';
+    out[written++] = '\0';
 
-    return written + 1;
+    return written;
 }
 
 void format_value(uint64_t value, char *out) {

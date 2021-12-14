@@ -17,6 +17,7 @@ io_state_e G_io_state;
 ux_state_t G_ux;
 bolos_ux_params_t G_ux_params;
 global_ctx_t G_context;
+token_data_ctx_t G_token_symbols;
 
 /**
  * Handle APDU command received and send back APDU response using handlers.
@@ -33,6 +34,7 @@ void app_main() {
 
     // Reset context
     explicit_bzero(&G_context, sizeof(G_context));
+    explicit_bzero(&G_token_symbols, sizeof(G_token_symbols));
 
     for (;;) {
         BEGIN_TRY {

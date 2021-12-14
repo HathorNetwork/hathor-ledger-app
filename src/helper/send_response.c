@@ -9,6 +9,8 @@
 #include "common/buffer.h"
 #include "../hathor.h"
 
+#include "../token/signature.h"
+
 int helper_send_response_xpub() {
     uint8_t resp[PUBKEY_LEN + CHAINCODE_LEN + 4] = {0};
     size_t offset = 0;
@@ -20,4 +22,16 @@ int helper_send_response_xpub() {
     offset += 4;
 
     return io_send_response(&(const buffer_t){.ptr = resp, .size = offset, .offset = 0}, SW_OK);
+}
+
+int helper_send_token_data_signature() {
+    uint8_t signature[100];
+    size_t sig_len;
+
+    uint32_t err = sign_token(0, &G_context.token, signature, 100, &sig_len);
+    if (err) return io_send_sw(SW_INVALID_SIGNATURE);
+
+    // return the signature
+    return io_send_response(&(const buffer_t){.ptr = signature, .size = sig_len, .offset = 0},
+                            SW_OK);
 }

@@ -1,5 +1,7 @@
 #include "signature.h"
 
+#include "token_parser.h"
+#include "signature.h"
 #include "types.h"
 #include "../common/bip32.h"
 #include "hathor.h"
@@ -116,4 +118,18 @@ bool verify_token_signature(uint32_t secret, token_t *token, uint8_t *signature,
     explicit_bzero(&chain_code, sizeof(chain_code));
 
     return sig_ok;
+}
+
+bool check_token_signature_from_apdu(buffer_t *cdata, token_t *token) {
+    uint8_t signature[100];
+    uint8_t sig_len;
+    // parse info on token
+    if (!parse_token(cdata, token)) return false;
+
+    // extract signature from cdata
+    if (!(buffer_read_u8(cdata, &sig_len) && buffer_read_bytes(cdata, signature, 100, sig_len))) {
+        return false;
+    }
+    // TODO: first argument from persistent storage
+    return verify_token_signature(0, token, signature, sig_len);
 }

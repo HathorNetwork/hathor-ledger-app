@@ -60,8 +60,11 @@
  * Status word for signature fail.
  */
 #define SW_SIGNATURE_FAIL 0xB008
-
 /**
  * Status word for invalid tx
  */
 #define SW_INVALID_TX 0xB009
+/**
+ * Status word for invalid signature (malformed or failed verification)
+ */
+#define SW_INVALID_SIGNATURE 0xB00A
