@@ -11,7 +11,7 @@
 uint32_t get_secret(void);
 
 /**
- * Generate new rangom secret and write to N_storage.secret.
+ * Generate new random secret and write to N_storage.secret.
  *
  * @returns uint32_t the new internal secret seed;
  */
