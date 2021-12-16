@@ -53,10 +53,6 @@ typedef struct {
     uint8_t buf[32];
 } cx_hash_t;
 
-// Missing:
-//
-// os_perso_derive_node_bip32
-
 MOCK_BOLOS_FN(cx_sha256_init, { cx_sha256_t out; })
 int cx_sha256_init(cx_sha256_t *hash);
 MOCK_BOLOS_FN(cx_ripemd160_init, { cx_ripemd160_t out; })

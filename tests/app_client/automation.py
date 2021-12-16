@@ -20,6 +20,17 @@ class Button(IntEnum):
 
 
 class Rules:
+    ''' Automation rules and schema are defined in https://speculos.ledger.com/user/automation.html
+    This class will not implement all functionalities, only the ones we need for our tests.
+
+    4 action types are available:
+    ["button", num, pressed] : press (pressed=true) or release (pressed=false) a button (num=1 for left, num=2 for right)
+    [ "finger", x, y, touched ]: touch (touched=true) or release (touched=false) the screen (x and y coordinates)
+    [ "setbool", varname, value ]: set a variable whose name is varname to a boolean value (either true or false)
+    [ "exit" ]: exit speculos
+
+    Obs: The "finger" action only applies to blue which we do not support
+    '''
     go_right = [
         ["button", Button.RIGHT.value, True],
         ["button", Button.RIGHT.value, False],
