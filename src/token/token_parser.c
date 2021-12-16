@@ -4,6 +4,19 @@
 
 #include "../common/buffer.h"
 
+bool is_printable(char *str, int len) {
+    // this method works on char arrays and strings
+    for (int i = 0; i < len; i++) {
+        // to catch the end of a string
+        if (str[i] == '\0') return true;
+        uint8_t c = (uint8_t)str[i];
+        // printable ascii characters 0x20-0x7f
+        if (c < 0x20u || c >= 0x80u) return false;
+    }
+    // char arrays (not strings) do not end with '\0'
+    return true;
+}
+
 bool parse_token(buffer_t *buf, token_t *token) {
     // read uid, len(symbol), symbol, len(name), name, version
     if (!(buffer_read_bytes(buf, token->uid, TOKEN_UID_LEN, TOKEN_UID_LEN) &&
@@ -18,15 +31,8 @@ bool parse_token(buffer_t *buf, token_t *token) {
 
     // check name and symbol for printable characters
     // This will fail if emoji or non-ascii characters are present
-    for (int i = 0; i < token->symbol_len; i++) {
-        if ((uint8_t) token->symbol[i] < 0x80u) continue;
-        return false;
-    }
-
-    for (int i = 0; i < token->name_len; i++) {
-        if ((uint8_t) token->name[i] < 0x80u) continue;
-        return false;
-    }
+    if(!is_printable((char *)token->symbol, (int)token->symbol_len)) return false;
+    if(!is_printable((char *)token->name, (int)token->name_len)) return false;
 
     return true;
 }

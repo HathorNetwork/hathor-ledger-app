@@ -9,14 +9,14 @@
 void gen_salt(uint32_t i, uint8_t *token_uid, uint8_t *out) {
     uint8_t message[36] = {0};  // 32 bytes from uid + 4 bytes from i
 
-    memmove(message, token_uid, 32);
+    memmove(message, token_uid, TOKEN_UID_LEN);
     // i in big endian
-    message[32] = (uint8_t)(i >> 24);
-    message[33] = (uint8_t)(i >> 16);
-    message[34] = (uint8_t)(i >> 8);
-    message[35] = (uint8_t)(i >> 0);
+    message[TOKEN_UID_LEN + 0] = (uint8_t)(i >> 24);
+    message[TOKEN_UID_LEN + 1] = (uint8_t)(i >> 16);
+    message[TOKEN_UID_LEN + 2] = (uint8_t)(i >> 8);
+    message[TOKEN_UID_LEN + 3] = (uint8_t)(i >> 0);
 
-    cx_hash_sha256(message, 36, out, 32);
+    cx_hash_sha256(message, TOKEN_UID_LEN + 4, out, 32);
 }
 
 void gen_signer_path(uint32_t secret, uint32_t *path, size_t *length) {
@@ -47,7 +47,7 @@ void init_token_signature_message(uint32_t secret, token_t *token, uint8_t *out)
     message[offset] = token->version;
     offset += 1;
     // add salt
-    gen_salt(secret, token->uid, salt);
+    gen_salt(secret, (uint8_t *)token->uid, salt);
     memmove(message + offset, salt, 32);
     offset += 32;
     // hash message with sha256
