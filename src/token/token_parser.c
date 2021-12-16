@@ -9,7 +9,7 @@ bool is_printable(char *str, int len) {
     for (int i = 0; i < len; i++) {
         // to catch the end of a string
         if (str[i] == '\0') return true;
-        uint8_t c = (uint8_t)str[i];
+        uint8_t c = (uint8_t) str[i];
         // printable ascii characters 0x20-0x7f
         if (c < 0x20u || c >= 0x80u) return false;
     }
@@ -31,8 +31,8 @@ bool parse_token(buffer_t *buf, token_t *token) {
 
     // check name and symbol for printable characters
     // This will fail if emoji or non-ascii characters are present
-    if(!is_printable((char *)token->symbol, (int)token->symbol_len)) return false;
-    if(!is_printable((char *)token->name, (int)token->name_len)) return false;
+    if (!is_printable((char *) token->symbol, (int) token->symbol_len)) return false;
+    if (!is_printable((char *) token->name, (int) token->name_len)) return false;
 
     return true;
 }

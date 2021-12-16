@@ -47,7 +47,7 @@ void init_token_signature_message(uint32_t secret, token_t *token, uint8_t *out)
     message[offset] = token->version;
     offset += 1;
     // add salt
-    gen_salt(secret, (uint8_t *)token->uid, salt);
+    gen_salt(secret, (uint8_t *) token->uid, salt);
     memmove(message + offset, salt, 32);
     offset += 32;
     // hash message with sha256
