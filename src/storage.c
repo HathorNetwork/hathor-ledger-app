@@ -13,3 +13,9 @@ uint32_t generate_secret() {
     nvm_write((void *) &N_storage.secret, &new_secret, sizeof(uint32_t));
     return new_secret;
 }
+
+void toggle_show_path() {
+    uint8_t show_path = N_storage.settings.show_path;
+    show_path = (show_path + 1) % 2;
+    nvm_write((void *) &N_storage.settings.show_path, &show_path, sizeof(uint8_t));
+}

@@ -24,7 +24,6 @@ static action_validate_cb g_validate_callback;
 static char g_amount[30];
 static char g_output_index[10];
 static char g_address[B58_ADDRESS_LEN];
-#ifdef UI_SHOW_PATH
 static char g_bip32_path[60];
 
 // Step with title/text for BIP32 path
@@ -34,7 +33,6 @@ UX_STEP_NOCB(ux_display_path_step,
                  .title = "Path",
                  .text = g_bip32_path,
              });
-#endif
 
 /**
  * Clean context and return to menu.
@@ -254,14 +252,7 @@ int ui_display_tx_outputs() {
  *  #3 screen: approve button
  *  #4 screen: reject button
  */
-UX_FLOW(ux_display_xpub_flow,
-        &ux_display_confirm_step,
-#ifdef UI_SHOW_PATH
-        &ux_display_path_step,
-#endif
-        &ux_display_approve_step,
-        &ux_display_reject_step,
-        FLOW_LOOP);
+const ux_flow_step_t *ux_display_xpub_flow[6];  // the 4 steps + FLOW_LOOP + FLOW_END_STEP
 
 int ui_display_xpub_confirm() {
     if (G_context.req_type != CONFIRM_XPUB || G_context.state != STATE_NONE) {
@@ -269,18 +260,27 @@ int ui_display_xpub_confirm() {
         return io_send_sw(SW_BAD_STATE);
     }
 
-#ifdef UI_SHOW_PATH
-    memset(g_bip32_path, 0, sizeof(g_bip32_path));
-
-    if (!bip32_path_format(G_context.bip32_path.path,
-                           G_context.bip32_path.length,
-                           g_bip32_path,
-                           sizeof(g_bip32_path))) {
-        return io_send_sw(SW_DISPLAY_BIP32_PATH_FAIL);
-    }
-#endif
-
     g_validate_callback = &ui_action_confirm_xpub;  // send xpub from bip32 path
+
+    uint8_t index = 0;
+    ux_display_xpub_flow[index++] = &ux_display_confirm_step;
+
+    if (N_storage.settings.show_path) {
+        memset(g_bip32_path, 0, sizeof(g_bip32_path));
+
+        if (!bip32_path_format(G_context.bip32_path.path,
+                               G_context.bip32_path.length,
+                               g_bip32_path,
+                               sizeof(g_bip32_path))) {
+            return io_send_sw(SW_DISPLAY_BIP32_PATH_FAIL);
+        }
+        ux_display_xpub_flow[index++] = &ux_display_path_step;
+    }
+
+    ux_display_xpub_flow[index++] = &ux_display_approve_step;
+    ux_display_xpub_flow[index++] = &ux_display_reject_step;
+    ux_display_xpub_flow[index++] = FLOW_LOOP;
+    ux_display_xpub_flow[index++] = FLOW_END_STEP;
 
     ux_flow_init(0, ux_display_xpub_flow, NULL);
 
@@ -296,14 +296,7 @@ int ui_display_xpub_confirm() {
  *  #4 screen: approve button
  *  #5 screen: reject button
  */
-UX_FLOW(ux_display_address_flow,
-        &ux_display_confirm_addr_step,
-#ifdef UI_SHOW_PATH
-        &ux_display_path_step,
-#endif
-        &ux_display_address_step,
-        &ux_display_approve_step,
-        FLOW_LOOP);
+const ux_flow_step_t *ux_display_address_flow[6];  // the 4 steps + FLOW_LOOP + FLOW_END_STEP
 
 int ui_display_confirm_address() {
     if (G_context.req_type != CONFIRM_ADDRESS || G_context.state != STATE_NONE) {
@@ -312,16 +305,6 @@ int ui_display_confirm_address() {
     }
 
     memset(g_address, 0, sizeof(g_address));
-
-#ifdef UI_SHOW_PATH
-    memset(g_bip32_path, 0, sizeof(g_bip32_path));
-    if (!bip32_path_format(G_context.bip32_path.path,
-                           G_context.bip32_path.length,
-                           g_bip32_path,
-                           sizeof(g_bip32_path))) {
-        return io_send_sw(SW_DISPLAY_BIP32_PATH_FAIL);
-    }
-#endif
 
     cx_ecfp_private_key_t private_key = {0};
     cx_ecfp_public_key_t public_key = {0};
@@ -346,6 +329,25 @@ int ui_display_confirm_address() {
     explicit_bzero(&public_key, sizeof(public_key));
 
     g_validate_callback = &ui_action_confirm_address;
+
+    // setup UX steps
+    uint8_t index = 0;
+    ux_display_address_flow[index++] = &ux_display_confirm_addr_step;
+
+    if (N_storage.settings.show_path) {
+        memset(g_bip32_path, 0, sizeof(g_bip32_path));
+        if (!bip32_path_format(G_context.bip32_path.path,
+                               G_context.bip32_path.length,
+                               g_bip32_path,
+                               sizeof(g_bip32_path))) {
+            return io_send_sw(SW_DISPLAY_BIP32_PATH_FAIL);
+        }
+        ux_display_address_flow[index++] = &ux_display_path_step;
+    }
+    ux_display_address_flow[index++] = &ux_display_address_step;
+    ux_display_address_flow[index++] = &ux_display_approve_step;
+    ux_display_address_flow[index++] = FLOW_LOOP;
+    ux_display_address_flow[index++] = FLOW_END_STEP;
 
     ux_flow_init(0, ux_display_address_flow, NULL);
 

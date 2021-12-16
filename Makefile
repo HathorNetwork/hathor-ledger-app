@@ -10,10 +10,6 @@ NETWORK=mainnet
 endif
 DEFINES += NETWORK=\"$(NETWORK)\"
 
-ifdef SHOW_PATH
-DEFINES += UI_SHOW_PATH=1
-endif
-
 include $(BOLOS_SDK)/Makefile.defines
 
 APP_LOAD_PARAMS  = --curve secp256k1
