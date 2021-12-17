@@ -204,7 +204,7 @@ void prepare_display_output() {
     // set g_ammount (HTR value)
     memset(g_amount, 0, sizeof(g_amount));
     strcpy(g_amount, "HTR ");
-    format_fpu64(g_amount + 4, sizeof(g_amount) - 5, output.value, 2);
+    format_value(output.value, g_amount + 4);
 }
 
 void ui_confirm_output(bool choice) {
