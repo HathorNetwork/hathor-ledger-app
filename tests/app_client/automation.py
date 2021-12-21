@@ -187,6 +187,8 @@ class CommandAutomation:
             Rules.rule(Rules.go_left, 'Output'),
             Rules.rule(Rules.go_left, 'Transaction?'),
             Rules.rule(Rules.go_left, 'access?'),
+            Rules.rule(Rules.go_left, 'Confirm token data'),
+            Rules.rule(Rules.go_left, 'Reset token signatures'),
             Rules.rule(Rules.go_left, 'Reject'),
             Rules.rule(Rules.press_both, 'Approve')
         ]

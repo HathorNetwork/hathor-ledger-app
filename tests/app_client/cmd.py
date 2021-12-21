@@ -4,6 +4,7 @@ from typing import Tuple, List
 from app_client.cmd_builder import CommandBuilder, InsType
 from app_client.exception import DeviceException
 from app_client.transaction import Transaction
+from app_client.token import Token
 from app_client.transport import ApduTransport
 
 
@@ -130,3 +131,44 @@ class Command:
             raise DeviceException(error_code=sw, ins=InsType.INS_SIGN_TX)
 
         return signatures
+
+    def sign_token_data(self, token: Token) -> bytes:
+        print('cmd ====')
+        print(token.symbol, token.name)
+        sw, response = self.transport.exchange_apdu_raw(
+            self.builder.sign_token_data(token)
+        )
+
+        if sw != 0x9000:
+            raise DeviceException(error_code=sw, ins=InsType.INS_GET_ADDRESS)
+
+        return response
+
+    def send_token_data(self, token: Token, signature: bytes, num: int = 0):
+        sw, response = self.transport.exchange_apdu_raw(
+            self.builder.send_token_data(token, signature, num=num)
+        )
+
+        if sw != 0x9000:
+            raise DeviceException(error_code=sw, ins=InsType.INS_GET_ADDRESS)
+
+    def send_token_data_list(self, tokens: List[Token], signatures: List[bytes]):
+        assert len(tokens) == len(signatures)
+        for i, token in enumerate(tokens):
+            self.send_token_data(token, signatures[i], num=i)
+
+    def verify_token_signature(self, token: Token, signature: bytes):
+        sw, response = self.transport.exchange_apdu_raw(
+            self.builder.verify_token_signature(token, signature)
+        )
+
+        if sw != 0x9000:
+            raise DeviceException(error_code=sw, ins=InsType.INS_GET_ADDRESS)
+
+    def reset_token_signatures(self):
+        sw, response = self.transport.exchange_apdu_raw(
+            self.builder.reset_token_signatures()
+        )
+
+        if sw != 0x9000:
+            raise DeviceException(error_code=sw, ins=InsType.INS_GET_ADDRESS)

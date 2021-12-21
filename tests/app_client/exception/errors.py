@@ -59,3 +59,6 @@ class SignatureFailError(Exception):
 
 class TxInvalidError(Exception):
     pass
+
+class InvalidSignatureError(Exception):
+    pass
