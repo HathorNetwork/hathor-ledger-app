@@ -3,11 +3,7 @@
 #include <stddef.h>  // size_t
 #include <stdint.h>  // uint*_t
 
-#ifndef TEST
 #include "cx.h"
-#else
-#include "stubs.h"
-#endif
 
 #include "constants.h"
 #include "token/types.h"

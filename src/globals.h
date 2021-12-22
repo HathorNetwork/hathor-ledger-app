@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 #include "ux.h"
+#include "os.h"
 
 #include "io.h"
 #include "types.h"

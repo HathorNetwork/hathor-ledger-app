@@ -5,11 +5,7 @@
 #include <stddef.h>   // size_t
 #include <stdbool.h>  // bool
 
-#ifndef TEST
 #include "cx.h"
-#else
-#include "stubs.h"
-#endif
 
 extern const uint32_t htr_bip44[2];
 

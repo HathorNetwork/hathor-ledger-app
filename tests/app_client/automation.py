@@ -150,9 +150,17 @@ class Automation(metaclass=ABCMeta):
     def set_accept_all(self):
         ...
 
+    @abstractmethod
+    def close(self):
+        ...
+
 
 class FakeAutomation(Automation):
     def set_accept_all(self):
+        pass
+
+
+    def close(self) -> None:
         pass
 
 

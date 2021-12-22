@@ -4,7 +4,8 @@
 #include "signature.h"
 #include "types.h"
 #include "../common/bip32.h"
-#include "hathor.h"
+#include "../hathor.h"
+#include "../storage.h"
 
 #include "cx.h"
 
@@ -130,6 +131,5 @@ bool check_token_signature_from_apdu(buffer_t *cdata, token_t *token) {
     if (!(buffer_read_u8(cdata, &sig_len) && buffer_read_bytes(cdata, signature, 100, sig_len))) {
         return false;
     }
-    // TODO: first argument from persistent storage
-    return verify_token_signature(0, token, signature, sig_len);
+    return verify_token_signature(get_secret(), token, signature, sig_len);
 }

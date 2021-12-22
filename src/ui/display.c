@@ -4,25 +4,21 @@
 #include <stdint.h>
 #include <string.h>
 
-#ifndef TEST
 #include "ux.h"
 #include "cx.h"
-#else
-#include "stubs.h"
-#endif
+
 #include "glyphs.h"
 
-#include "display.h"
-#include "constants.h"
+#include "../common/base58.h"
+#include "../common/format.h"
+#include "../constants.h"
 #include "../globals.h"
+#include "../hathor.h"
+#include "../storage.h"
 #include "../sw.h"
 #include "action/validate.h"
-#include "../common/format.h"
+#include "display.h"
 #include "menu.h"
-
-#include "../hathor.h"
-
-#include "../common/base58.h"
 
 static action_validate_cb g_validate_callback;
 static char g_amount[30];
@@ -125,10 +121,10 @@ UX_STEP_NOCB(ux_display_reset_token_signatures_alert,
              });
 
 UX_STEP_NOCB(ux_display_reset_token_signatures_warning,
-             bn,
+             bnnn_paging,
              {
-                 "Reset token signatures",
-                 "All tokens will be reset",
+                 .title = "Warning",
+                 .text = "This action will reset all token signatures",
              });
 
 UX_STEP_NOCB(ux_display_token_data_0,
@@ -404,10 +400,11 @@ int ui_display_confirm_address() {
 
 void ui_confirm_reset_token_signatures(bool choice) {
     if (choice) {
-        // TODO: reset secret
+        // generates and saves new secret
+        generate_secret();
         io_send_sw(SW_OK);
     } else {
-        // return error
+        // return error, denied by user
         io_send_sw(SW_DENY);
     }
     ui_menu_main();
@@ -440,7 +437,6 @@ int ui_display_reset_token_signatures_confirm() {
  *  #3 screen: approve button
  *  #4 screen: reject button
  */
-// TODO: change approve to next step where we will display the uid 8 chars at a time
 UX_FLOW(ux_display_sign_token_data,
         &ux_display_token_data_0,
         &ux_display_token_data_1_symbol,
@@ -450,28 +446,6 @@ UX_FLOW(ux_display_sign_token_data,
         &ux_display_reject_step,
         FLOW_LOOP);
 
-/* FLOW to sign token data:
- *  #1 screen: uid 0-7
- *  #2 screen: uid 8-15
- *  #3 screen: uid 16-23
- *  #4 screen: uid 24-31
- *  #5 screen: uid 32-29
- *  #6 screen: uid 40-47
- *  #7 screen: uid 48-55
- *  #8 screen: uid 56-63
- *  #10 screen: approve button
- *  #11 screen: reject button
- */
-// XXX: or have 1 step with 8 chars that the action is to load the next 8
-//      and when all are over, approve or reject
-// UX_FLOW(ux_display_token_uid,
-//         &ux_display_token_data_0,
-//         &ux_display_token_data_1_symbol,
-//         &ux_display_token_data_2_name,
-//         &ux_display_token_data_3_uid,
-//         &ux_display_approve_step,
-//         &ux_display_reject_step);
-
 int ui_display_sign_token_data() {
     // show token information
     // copy symbol
@@ -480,7 +454,7 @@ int ui_display_sign_token_data() {
     // copy name
     memmove(g_token_name, G_context.token.name, G_context.token.name_len);
     g_token_name[G_context.token.name_len] = '\0';
-    // copy uid
+    // format uid
     format_hex(G_context.token.uid, 32, g_token_uid, 65);
     // ask confirmation to sign
     g_validate_callback = &ui_action_sign_token_data;

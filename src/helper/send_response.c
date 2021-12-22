@@ -8,6 +8,7 @@
 #include "../sw.h"
 #include "common/buffer.h"
 #include "../hathor.h"
+#include "../storage.h"
 
 #include "../token/signature.h"
 
@@ -28,7 +29,7 @@ int helper_send_token_data_signature() {
     uint8_t signature[100];
     size_t sig_len;
 
-    uint32_t err = sign_token(0, &G_context.token, signature, 100, &sig_len);
+    uint32_t err = sign_token(get_secret(), &G_context.token, signature, 100, &sig_len);
     if (err) return io_send_sw(SW_INVALID_SIGNATURE);
 
     // return the signature
