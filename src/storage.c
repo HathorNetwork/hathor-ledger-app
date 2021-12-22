@@ -14,5 +14,5 @@ void get_secret(uint8_t* secret) {
 void generate_secret() {
     uint8_t new_secret[SECRET_LEN];
     cx_rng_no_throw(new_secret, SECRET_LEN);
-    nvm_write((void *) &N_storage.secret, &new_secret, SECRET_LEN);
+    nvm_write((void*) &N_storage.secret, &new_secret, SECRET_LEN);
 }

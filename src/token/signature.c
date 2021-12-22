@@ -4,7 +4,7 @@
 
 #include "cx.h"
 
-void init_token_signature_message(uint8_t* secret, token_t *token, uint8_t *out) {
+void init_token_signature_message(uint8_t *secret, token_t *token, uint8_t *out) {
     // message == uid + symbol + name + version + salt
     size_t offset = 0;
     // add secret
@@ -25,14 +25,14 @@ void init_token_signature_message(uint8_t* secret, token_t *token, uint8_t *out)
 }
 
 // sign token
-void sign_token(uint8_t* secret, token_t *token, uint8_t *signature) {
+void sign_token(uint8_t *secret, token_t *token, uint8_t *signature) {
     uint8_t message[MESSAGE_LEN];
     init_token_signature_message(secret, token, message);
     cx_hash_sha256(message, MESSAGE_LEN, signature, 32);
 }
 
 // verify token signature
-bool verify_token_signature(uint8_t* secret, token_t *token, uint8_t *signature) {
+bool verify_token_signature(uint8_t *secret, token_t *token, uint8_t *signature) {
     uint8_t message[MESSAGE_LEN];
     uint8_t sign[32];
 

@@ -17,7 +17,7 @@
  * @param[out] signature
  *   Pointer to signature byte buffer.
  */
-void sign_token(uint8_t* secret, token_t *token, uint8_t *signature);
+void sign_token(uint8_t *secret, token_t *token, uint8_t *signature);
 
 /**
  * Verify a token signature
@@ -32,4 +32,4 @@ void sign_token(uint8_t* secret, token_t *token, uint8_t *signature);
  * @return bool if signature is valid of not.
  *
  */
-bool verify_token_signature(uint8_t* secret, token_t *token, uint8_t *signature);
+bool verify_token_signature(uint8_t *secret, token_t *token, uint8_t *signature);
