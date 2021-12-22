@@ -4,15 +4,14 @@
 
 /**
  * Get N_storage.secret.
- * If it's the first call ever, generate and save a secret before return.
+ * If it's the first call ever, generate and save a secret.
  *
- * @returns uint32_t the internal secret seed;
+ * @param[out] secret
+ *
  */
-uint32_t get_secret(void);
+void get_secret(uint8_t* secret);
 
 /**
  * Generate new random secret and write to N_storage.secret.
- *
- * @returns uint32_t the new internal secret seed;
  */
-uint32_t generate_secret(void);
+void generate_secret(void);

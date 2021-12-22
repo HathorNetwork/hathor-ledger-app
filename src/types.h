@@ -123,5 +123,5 @@ typedef struct {
  */
 
 typedef struct internalStorage_t {
-    uint32_t secret;
+    uint8_t secret[SECRET_LEN];
 } internalStorage_t;
