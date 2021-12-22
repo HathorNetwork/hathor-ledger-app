@@ -12,6 +12,10 @@
 #include "../handler/get_address.h"
 #include "../handler/get_xpub.h"
 #include "../handler/sign_tx.h"
+#include "../handler/sign_token_data.h"
+#include "../handler/send_token_data.h"
+#include "../handler/verify_token_signature.h"
+#include "../handler/reset_token_signatures.h"
 
 int apdu_dispatcher(const command_t *cmd) {
     if (cmd->cla != CLA) {
@@ -72,10 +76,50 @@ int apdu_dispatcher(const command_t *cmd) {
                 // The data length is variable on each stage which requires data.
                 // so we will just test for existence or not of data
                 return io_send_sw(SW_WRONG_DATA_LENGTH);
-            } else if (cmd->p1 == SIGN_TX_P1_DONE && cmd->data) {
             }
 
             return handler_sign_tx(&buf, (sing_tx_stage_e) cmd->p1, cmd->p2);
+        case SIGN_TOKEN_DATA:
+            if (cmd->p1 != 0 || cmd->p2 != 0) {
+                return io_send_sw(SW_WRONG_P1P2);
+            }
+
+            buf.ptr = cmd->data;
+            buf.size = cmd->lc;
+            buf.offset = 0;
+
+            return handler_sign_token_data(&buf);
+        case SEND_TOKEN_DATA:
+            if (cmd->p2 != 0) {
+                return io_send_sw(SW_WRONG_P1P2);
+            }
+
+            buf.ptr = cmd->data;
+            buf.size = cmd->lc;
+            buf.offset = 0;
+
+            return handler_send_token_data(cmd->p1 == 0, &buf);
+        case VERIFY_TOKEN_SIGNATURE:
+            if (cmd->p1 != 0 || cmd->p2 != 0) {
+                return io_send_sw(SW_WRONG_P1P2);
+            }
+
+            buf.ptr = cmd->data;
+            buf.size = cmd->lc;
+            buf.offset = 0;
+
+            return handler_verify_token_signature(&buf);
+        case RESET_TOKEN_SIGNATURES:
+            if (cmd->p1 != 0 || cmd->p2 != 0) {
+                return io_send_sw(SW_WRONG_P1P2);
+            }
+
+            buf.ptr = cmd->data;
+            buf.size = cmd->lc;
+            buf.offset = 0;
+
+            return handler_reset_token_signatures(&buf);
+
         default:
             return io_send_sw(SW_INS_NOT_SUPPORTED);
     }

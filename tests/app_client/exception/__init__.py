@@ -14,7 +14,8 @@ from .errors import (UnknownDeviceError,
                      TxHashFail,
                      BadStateError,
                      SignatureFailError,
-                     TxInvalidError)
+                     TxInvalidError,
+                     InvalidSignatureError)
 
 __all__ = [
     "DeviceException",
@@ -33,6 +34,7 @@ __all__ = [
     "TxHashFail",
     "BadStateError",
     "SignatureFailError",
+    "InvalidSignatureError",
     # OS Specific errors
     "BOLOSPathPrefixError",
 ]

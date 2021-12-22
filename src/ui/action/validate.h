@@ -19,3 +19,5 @@ void ui_action_confirm_xpub(bool choice);
  *
  */
 void ui_action_confirm_address(bool choice);
+
+void ui_action_sign_token_data(bool choice);

@@ -1,10 +1,6 @@
 #pragma once
 
-#ifndef TEST
 #include "os.h"
-#else
-#include "stubs.h"
-#endif
 
 #include "../common/macros.h"
 
@@ -21,3 +17,5 @@
  * Senx xpub data from the public key derived by the app.
  */
 int helper_send_response_xpub(void);
+
+int helper_send_token_data_signature(void);

@@ -4,6 +4,7 @@ import struct
 from typing import List, Tuple, Union, Iterator, cast
 
 from app_client.transaction import Transaction
+from app_client.token import Token
 from app_client.utils import bip32_path_from_string
 
 MAX_APDU_LEN: int = 255
@@ -34,6 +35,10 @@ class InsType(enum.IntEnum):
     INS_GET_ADDRESS = 0x04
     INS_GET_XPUB = 0x05
     INS_SIGN_TX = 0x06
+    INS_SIGN_TOKEN_DATA = 0x07
+    INS_SEND_TOKEN_DATA = 0x08
+    INS_VERIFY_TOKEN_SIGNATURE = 0x09
+    INS_RESET_TOKEN_SIGNATURES = 0x0a
 
 
 class CommandBuilder:
@@ -236,3 +241,37 @@ class CommandBuilder:
 
     def sign_tx_end(self) -> bytes:
         return self.serialize(cla=self.CLA, ins=InsType.INS_SIGN_TX, p1=0x02, p2=0x00, cdata=b'')
+
+    def sign_token_data(self, token: Token) -> bytes:
+        print('cmd builder ====')
+        print(token.serialize())
+        return self.serialize(
+                cla=self.CLA,
+                ins=InsType.INS_SIGN_TOKEN_DATA,
+                p1=0x00, p2=0x00,
+                cdata=token.serialize()
+        )
+
+    def send_token_with_signature(self, ins: InsType, token: Token, signature: bytes, num: int=0) -> bytes:
+        print('cmd builder ====')
+        print(token.serialize(signature=signature))
+        return self.serialize(
+                cla=self.CLA,
+                ins=ins, p1=num, p2=0x00,
+                cdata=token.serialize(signature=signature)
+        )
+
+    def send_token_data(self, token: Token, signature: bytes, num: int=0) -> bytes:
+        return self.send_token_with_signature(
+                InsType.INS_SEND_TOKEN_DATA,
+                token, signature, num=num
+        )
+
+    def verify_token_signature(self, token: Token, signature: bytes) -> bytes:
+        return self.send_token_with_signature(
+                InsType.INS_VERIFY_TOKEN_SIGNATURE,
+                token, signature
+        )
+
+    def reset_token_signatures(self) -> bytes:
+        return self.serialize(cla=self.CLA, ins=InsType.INS_RESET_TOKEN_SIGNATURES, p1=0x00, p2=0x00, cdata=b'')

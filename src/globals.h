@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 #include "ux.h"
+#include "os.h"
 
 #include "io.h"
 #include "types.h"
@@ -37,6 +38,11 @@ extern io_state_e G_io_state;
  * Global context for user requests.
  */
 extern global_ctx_t G_context;
+
+/**
+ * Global token uid/symbol registry for user requests.
+ */
+extern token_data_ctx_t G_token_symbols;
 
 /**
  * Persistent Storage

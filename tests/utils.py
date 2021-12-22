@@ -1,6 +1,7 @@
 from typing import Optional
 
 from app_client.transaction import TxInput, TxOutput, Transaction
+from app_client.token import Token
 
 from faker import Faker
 
@@ -39,3 +40,7 @@ def fake_tx(
     tkns = tokens or [fake.sha256(True) for _ in range(fake.pyint(1, 10))]
 
     return Transaction(1, tkns, tx_inps, tx_outps)
+
+def fake_token():
+    c = fake.cryptocurrency()
+    return Token(1, c[0], c[1], fake.sha256())

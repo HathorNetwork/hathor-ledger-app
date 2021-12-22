@@ -29,3 +29,7 @@ int ui_display_xpub_confirm(void);
  * Ask the user to confirm the address the app generates is the same as the wallet
  */
 int ui_display_confirm_address(void);
+
+int ui_display_reset_token_signatures_confirm();
+
+int ui_display_sign_token_data();

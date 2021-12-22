@@ -8,6 +8,9 @@
 #include "../sw.h"
 #include "common/buffer.h"
 #include "../hathor.h"
+#include "../storage.h"
+
+#include "../token/signature.h"
 
 int helper_send_response_xpub() {
     uint8_t resp[PUBKEY_LEN + CHAINCODE_LEN + 4] = {0};
@@ -20,4 +23,15 @@ int helper_send_response_xpub() {
     offset += 4;
 
     return io_send_response(&(const buffer_t){.ptr = resp, .size = offset, .offset = 0}, SW_OK);
+}
+
+int helper_send_token_data_signature() {
+    uint8_t sign[32];
+    uint8_t secret[SECRET_LEN];
+
+    get_secret(secret);
+    sign_token(secret, &G_context.token, sign);
+
+    // return the signature
+    return io_send_response(&(const buffer_t){.ptr = sign, .size = 32, .offset = 0}, SW_OK);
 }

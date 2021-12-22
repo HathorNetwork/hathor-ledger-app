@@ -2,7 +2,9 @@
 
 #include <string.h>  // memmove
 
-#include "types.h"
+#include "token_parser.h"
+#include "../types.h"
+#include "../storage.h"
 
 #include "cx.h"
 
@@ -40,4 +42,15 @@ bool verify_token_signature(uint8_t *secret, token_t *token, uint8_t *signature)
     uint8_t sign[32];
     sign_token(secret, token, sign);
     return memcmp(signature, sign, 32) == 0;
+
+bool check_token_signature_from_apdu(buffer_t *cdata, token_t *token) {
+    uint8_t signature[32];
+    uint8_t secret[SECRET_LEN];
+    // parse info on token
+    if (!parse_token(cdata, token)) return false;
+
+    // extract signature from cdata
+    if (!buffer_read_bytes(cdata, signature, 32, 32)) return false;
+    get_secret(secret);
+    return verify_token_signature(secret, token, signature);
 }

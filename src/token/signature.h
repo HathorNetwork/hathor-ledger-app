@@ -4,6 +4,8 @@
 #include <stddef.h>   // size_t
 #include <stdbool.h>  // bool
 
+#include "../common/buffer.h"
+
 #include "types.h"
 
 /**
@@ -32,3 +34,16 @@ void sign_token(uint8_t *secret, token_t *token, uint8_t *signature);
  *
  */
 bool verify_token_signature(uint8_t *secret, token_t *token, uint8_t *signature);
+
+/**
+ * Verify a token signature from the raw apdu data
+ *
+ * @param[in]  cdata
+ *   Pointer to raw apdu data buffer.
+ * @param[out] token
+ *   Token parsed.
+ *
+ * @return bool if signature is valid of not.
+ *
+ */
+bool check_token_signature_from_apdu(buffer_t *cdata, token_t *token);

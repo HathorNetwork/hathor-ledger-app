@@ -1,4 +1,8 @@
-# Linter functions
+# Dev functions
+
+ifdef DEBUG
+BUILD_ARGS = DEBUG=1
+endif
 
 EXCLUDES =  -e './dev-env/*'
 EXCLUDES += -e './.git/*'
@@ -46,7 +50,7 @@ clean:
 .PHONY: build
 build: clean
 	$(info make)
-	docker run ${DOCKER_BUILDER_ARGS} ${BUILDER_IMAGE} make
+	docker run ${DOCKER_BUILDER_ARGS} ${BUILDER_IMAGE} make ${BUILD_ARGS}
 
 .PHONY: build-nanox
 build-nanox:

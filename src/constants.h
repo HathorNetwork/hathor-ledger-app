@@ -39,3 +39,8 @@
  * Secret length
  */
 #define SECRET_LEN 32
+
+/**
+ * Max custom tokens allowed on a transaction
+ */
+#define TX_MAX_TOKENS 10

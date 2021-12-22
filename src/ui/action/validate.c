@@ -28,3 +28,14 @@ void ui_action_confirm_address(bool choice) {
 
     ui_menu_main();
 }
+
+void ui_action_sign_token_data(bool choice) {
+    if (choice) {
+        helper_send_token_data_signature();
+    } else {
+        explicit_bzero(&G_context, sizeof(G_context));
+        io_send_sw(SW_DENY);
+    }
+
+    ui_menu_main();
+}

@@ -23,6 +23,7 @@ class DeviceException(Exception):  # pylint: disable=too-few-public-methods
         0xB007: BadStateError,
         0xB008: SignatureFailError,
         0xB009: TxInvalidError,
+        0xB00A: InvalidSignatureError,
     }
 
     os_exc: Dict[int, Any] = {

@@ -3,11 +3,7 @@
 
 #include "deserialize.h"
 
-#ifndef TEST
 #include "os.h"  // THROW
-#else
-#include "stubs.h"
-#endif
 
 #include "../sw.h"
 #include "constants.h"
