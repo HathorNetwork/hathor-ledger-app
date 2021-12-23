@@ -4,14 +4,14 @@
 
 #include "cx.h"
 
-void init_token_signature_message(uint8_t *secret, token_t *token, uint8_t *out) {
-    // message == uid + symbol + name + version + salt
+size_t init_token_signature_message(uint8_t *secret, token_t *token, uint8_t *out) {
+    // message == secret + uid + symbol + name + version + salt
     size_t offset = 0;
     // add secret
     memmove(out, secret, SECRET_LEN);
     offset += SECRET_LEN;
     // add token uid
-    memmove(out, token->uid, TOKEN_UID_LEN);
+    memmove(out + offset, token->uid, TOKEN_UID_LEN);
     offset += TOKEN_UID_LEN;
     // add token symbol
     memmove(out + offset, token->symbol, token->symbol_len);
@@ -22,21 +22,20 @@ void init_token_signature_message(uint8_t *secret, token_t *token, uint8_t *out)
     // add token version
     out[offset] = token->version;
     offset += 1;
+
+    return offset;
 }
 
 // sign token
 void sign_token(uint8_t *secret, token_t *token, uint8_t *signature) {
     uint8_t message[MESSAGE_LEN];
-    init_token_signature_message(secret, token, message);
-    cx_hash_sha256(message, MESSAGE_LEN, signature, 32);
+    size_t message_len = init_token_signature_message(secret, token, message);
+    cx_hash_sha256(message, message_len, signature, 32);
 }
 
 // verify token signature
 bool verify_token_signature(uint8_t *secret, token_t *token, uint8_t *signature) {
-    uint8_t message[MESSAGE_LEN];
     uint8_t sign[32];
-
-    init_token_signature_message(secret, token, message);
-    cx_hash_sha256(message, MESSAGE_LEN, sign, 32);
-    return memcmp(signature, sign, 32);
+    sign_token(secret, token, sign);
+    return memcmp(signature, sign, 32) == 0;
 }
