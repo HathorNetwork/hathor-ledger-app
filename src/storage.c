@@ -6,13 +6,13 @@
 void get_secret(uint8_t* secret) {
     for (uint8_t i = 0; i < SECRET_LEN; i++) {
         if (*((volatile uint8_t*) N_storage.secret + i) != 0) {
-            memmove(secret, (const uint8_t*)N_storage.secret, SECRET_LEN);
+            memmove(secret, (const uint8_t*) N_storage.secret, SECRET_LEN);
             return;
         }
     }
     // first access, generate and write to storage
     generate_secret();
-    memmove(secret, (const uint8_t*)N_storage.secret, SECRET_LEN);
+    memmove(secret, (const uint8_t*) N_storage.secret, SECRET_LEN);
 }
 
 void generate_secret() {
