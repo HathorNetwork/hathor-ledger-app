@@ -1,9 +1,9 @@
 from typing import Optional
 
-from app_client.transaction import TxInput, TxOutput, Transaction
-from app_client.token import Token
-
 from faker import Faker
+
+from app_client.token import Token
+from app_client.transaction import Transaction, TxInput, TxOutput
 
 fake = Faker()
 
@@ -15,11 +15,7 @@ def fake_path() -> str:
 def fake_script() -> bytes:
     pkh = fake.binary(length=20)
     # P2PKH script with random pubkey hash
-    return b''.join([
-        b'\x76\xa9\x14',
-        pkh,
-        b'\x88\xac'
-    ])
+    return b"".join([b"\x76\xa9\x14", pkh, b"\x88\xac"])
 
 
 def fake_input() -> TxInput:
@@ -31,15 +27,20 @@ def fake_output() -> TxOutput:
 
 
 def fake_tx(
-        inputs: Optional[TxInput] = None,
-        outputs: Optional[TxOutput] = None,
-        tokens: Optional[bytes] = None,
-        ) -> Transaction:
+    inputs: Optional[TxInput] = None,
+    outputs: Optional[TxOutput] = None,
+    tokens: Optional[bytes] = None,
+) -> Transaction:
     tx_inps = inputs or [fake_input() for _ in range(fake.pyint(1, 10))]
     tx_outps = outputs or [fake_output() for _ in range(fake.pyint(1, 10))]
-    tkns = [fake.sha256(True) for _ in range(fake.pyint(1, 10))] if tokens is None else tokens
+    tkns = (
+        [fake.sha256(True) for _ in range(fake.pyint(1, 10))]
+        if tokens is None
+        else tokens
+    )
 
     return Transaction(1, tkns, tx_inps, tx_outps)
+
 
 def fake_token():
     c = fake.cryptocurrency()

@@ -1,10 +1,10 @@
 import struct
-from typing import Tuple, List
+from typing import List, Tuple
 
 from app_client.cmd_builder import CommandBuilder, InsType
 from app_client.exception import DeviceException
-from app_client.transaction import Transaction
 from app_client.token import Token
+from app_client.transaction import Transaction
 from app_client.transport import ApduTransport
 
 
@@ -29,23 +29,21 @@ class Command:
         #            version (var) ||
         offset: int = 0
 
-        format_id: int = response[offset]
+        # format_id: int = response[offset]
         offset += 1
         app_name_len: int = response[offset]
         offset += 1
-        app_name: str = response[offset:offset + app_name_len].decode("ascii")
+        app_name: str = response[offset : offset + app_name_len].decode("ascii")
         offset += app_name_len
         version_len: int = response[offset]
         offset += 1
-        version: str = response[offset:offset + version_len].decode("ascii")
+        version: str = response[offset : offset + version_len].decode("ascii")
         offset += version_len
 
         return app_name, version
 
     def get_version(self) -> Tuple[bytes, int, int, int]:
-        sw, response = self.transport.exchange_apdu_raw(
-            self.builder.get_version()
-        )
+        sw, response = self.transport.exchange_apdu_raw(self.builder.get_version())
 
         if sw != 0x9000:
             raise DeviceException(error_code=sw, ins=InsType.INS_GET_VERSION)
@@ -54,11 +52,10 @@ class Command:
         assert len(response) == 6
 
         h, t, r, major, minor, patch = struct.unpack(
-            "cccBBB",
-            response
+            "cccBBB", response
         )  # type: bytes, bytes, bytes, int, int, int
 
-        htr = b''.join([h, t, r])
+        htr = b"".join([h, t, r])
 
         return htr, major, minor, patch
 
@@ -88,11 +85,11 @@ class Command:
         pub_key_len: int = 65
         chain_code_len: int = 32
 
-        pub_key: bytes = response[offset:offset + pub_key_len]
+        pub_key: bytes = response[offset : offset + pub_key_len]
         offset += pub_key_len
-        chain_code: bytes = response[offset:offset + chain_code_len]
+        chain_code: bytes = response[offset : offset + chain_code_len]
         offset += chain_code_len
-        fingerprint: bytes = response[offset:offset + 4]
+        fingerprint: bytes = response[offset : offset + 4]
         offset += 4
 
         assert len(response) == pub_key_len + chain_code_len + 4
@@ -100,17 +97,25 @@ class Command:
         return pub_key, chain_code, fingerprint
 
     def sign_tx(
-            self, transaction: Transaction,
-            has_change: bool = False, change_index: int = None, change_path: str = None,
-            ) -> List[bytes]:
+        self,
+        transaction: Transaction,
+        has_change: bool = False,
+        change_index: int = None,
+        change_path: str = None,
+    ) -> List[bytes]:
 
         sw: int
         response: bytes = b""
 
         signatures: List[bytes] = []
-        for chunk in self.builder.sign_tx_send_data(transaction=transaction, has_change=has_change, change_index=change_index, bip32_path=change_path):
+        for chunk in self.builder.sign_tx_send_data(
+            transaction=transaction,
+            has_change=has_change,
+            change_index=change_index,
+            bip32_path=change_path,
+        ):
             sw, response = self.transport.exchange_apdu_raw(chunk)
-            print('\n', 'ledger_resp:', sw, response)
+            print("\n", "ledger_resp:", sw, response)
 
             if sw != 0x9000:
                 raise DeviceException(error_code=sw, ins=InsType.INS_SIGN_TX)
@@ -118,7 +123,7 @@ class Command:
         # ask for signatures
         for chunk in self.builder.sign_tx_signatures(transaction):
             sw, response = self.transport.exchange_apdu_raw(chunk)
-            print('\n', 'ledger_resp:', sw, response)
+            print("\n", "ledger_resp:", sw, response)
 
             if sw != 0x9000:
                 raise DeviceException(error_code=sw, ins=InsType.INS_SIGN_TX)

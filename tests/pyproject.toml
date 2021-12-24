@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "ledger_tests"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+pytest = "^6.2.5"
+requests = "^2.26.0"
+ledgercomm = {extras = ["hid"], version = "^1.1.0"}
+Faker = "^10.0.0"
+black = "^21.12b0"
+isort = "^5.10.1"
+flake8 = "^4.0.1"
+
+[tool.isort]
+profile = "black"

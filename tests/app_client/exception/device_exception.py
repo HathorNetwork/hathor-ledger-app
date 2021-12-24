@@ -1,10 +1,12 @@
 import enum
-from typing import Dict, Any, Union
+from typing import Any, Dict, Union
 
 from .errors import *
 
+
 class BOLOSPathPrefixError(Exception):
     pass
+
 
 class DeviceException(Exception):  # pylint: disable=too-few-public-methods
     exc: Dict[int, Any] = {
@@ -30,22 +32,22 @@ class DeviceException(Exception):  # pylint: disable=too-few-public-methods
         0x4215: BOLOSPathPrefixError,
     }
 
-    def __new__(cls,
-                error_code: int,
-                ins: Union[int, enum.IntEnum, None] = None,
-                message: str = ""
-                ) -> Any:
-        error_message: str = (f"Error in {ins!r} command"
-                              if ins else "Error in command")
+    def __new__(
+        cls,
+        error_code: int,
+        ins: Union[int, enum.IntEnum, None] = None,
+        message: str = "",
+    ) -> Any:
+        error_message: str = f"Error in {ins!r} command" if ins else "Error in command"
 
         if error_code in DeviceException.exc:
-            return DeviceException.exc[error_code](hex(error_code),
-                                                   error_message,
-                                                   message)
+            return DeviceException.exc[error_code](
+                hex(error_code), error_message, message
+            )
 
         if error_code in DeviceException.os_exc:
-            return DeviceException.os_exc[error_code](hex(error_code),
-                                                   error_message,
-                                                   message)
+            return DeviceException.os_exc[error_code](
+                hex(error_code), error_message, message
+            )
 
         return UnknownDeviceError(hex(error_code), error_message, message)

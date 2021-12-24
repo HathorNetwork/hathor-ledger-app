@@ -2,20 +2,17 @@ from pathlib import Path
 
 import pytest
 
-from app_client.cmd import Command
 from app_client.automation import CommandAutomation, FakeAutomation
+from app_client.cmd import Command
 from app_client.transport import TransportAPI
 
 
 def pytest_addoption(parser):
-    parser.addoption("--hid",
-                     action="store_true")
-    parser.addoption("--headless",
-                     action="store_true")
+    parser.addoption("--hid", action="store_true")
+    parser.addoption("--headless", action="store_true")
     parser.addoption(
-            "--url",
-            help="Speculos API endpoint",
-            default="http://localhost:5000/")
+        "--url", help="Speculos API endpoint", default="http://localhost:5000/"
+    )
 
 
 @pytest.fixture(scope="module")
@@ -66,8 +63,6 @@ def transport(server):
 
 @pytest.fixture(scope="session")
 def cmd(transport):
-    command = Command(
-            transport=transport,
-            debug=True)
+    command = Command(transport=transport, debug=True)
 
     yield command

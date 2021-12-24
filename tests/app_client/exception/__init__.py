@@ -1,21 +1,23 @@
-from .device_exception import DeviceException, BOLOSPathPrefixError
-from .errors import (UnknownDeviceError,
-                     DenyError,
-                     WrongP1P2Error,
-                     WrongDataLengthError,
-                     InsNotSupportedError,
-                     ClaNotSupportedError,
-                     WrongResponseLengthError,
-                     DisplayBip32PathFailError,
-                     DisplayAddressFailError,
-                     DisplayAmountFailError,
-                     WrongTxLengthError,
-                     TxParsingFailError,
-                     TxHashFail,
-                     BadStateError,
-                     SignatureFailError,
-                     TxInvalidError,
-                     InvalidSignatureError)
+from .device_exception import BOLOSPathPrefixError, DeviceException
+from .errors import (
+    BadStateError,
+    ClaNotSupportedError,
+    DenyError,
+    DisplayAddressFailError,
+    DisplayAmountFailError,
+    DisplayBip32PathFailError,
+    InsNotSupportedError,
+    InvalidSignatureError,
+    SignatureFailError,
+    TxHashFail,
+    TxInvalidError,
+    TxParsingFailError,
+    UnknownDeviceError,
+    WrongDataLengthError,
+    WrongP1P2Error,
+    WrongResponseLengthError,
+    WrongTxLengthError,
+)
 
 __all__ = [
     "DeviceException",
@@ -34,6 +36,7 @@ __all__ = [
     "TxHashFail",
     "BadStateError",
     "SignatureFailError",
+    "TxInvalidError",
     "InvalidSignatureError",
     # OS Specific errors
     "BOLOSPathPrefixError",
