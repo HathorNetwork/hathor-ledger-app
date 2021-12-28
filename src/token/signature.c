@@ -1,5 +1,7 @@
 #include "signature.h"
 
+#include <string.h>  // memmove
+
 #include "types.h"
 
 #include "cx.h"
@@ -28,7 +30,7 @@ size_t init_token_signature_message(uint8_t *secret, token_t *token, uint8_t *ou
 
 // sign token
 void sign_token(uint8_t *secret, token_t *token, uint8_t *signature) {
-    uint8_t message[MESSAGE_LEN];
+    uint8_t message[MAX_MESSAGE_LEN];
     size_t message_len = init_token_signature_message(secret, token, message);
     cx_hash_sha256(message, message_len, signature, 32);
 }

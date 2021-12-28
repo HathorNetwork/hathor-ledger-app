@@ -3,7 +3,6 @@
 #include <stdint.h>   // uint*_t
 #include <stddef.h>   // size_t
 #include <stdbool.h>  // bool
-#include <string.h>
 
 #include "types.h"
 
