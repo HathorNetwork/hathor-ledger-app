@@ -42,6 +42,7 @@ bool verify_token_signature(uint8_t *secret, token_t *token, uint8_t *signature)
     uint8_t sign[32];
     sign_token(secret, token, sign);
     return memcmp(signature, sign, 32) == 0;
+}
 
 bool check_token_signature_from_apdu(buffer_t *cdata, token_t *token) {
     uint8_t signature[32];

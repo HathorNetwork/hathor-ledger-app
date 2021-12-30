@@ -19,12 +19,12 @@ bool is_printable(char *str, int len) {
 
 bool parse_token(buffer_t *buf, token_t *token) {
     // read uid, len(symbol), symbol, len(name), name, version
-    if (!(buffer_read_bytes(buf, token->uid, TOKEN_UID_LEN, TOKEN_UID_LEN) &&
+    if (!(buffer_read_u8(buf, &token->version) &&
+          buffer_read_bytes(buf, token->uid, TOKEN_UID_LEN, TOKEN_UID_LEN) &&
           buffer_read_u8(buf, &token->symbol_len) &&
           buffer_read_bytes(buf, token->symbol, MAX_TOKEN_SYMBOL_LEN, token->symbol_len) &&
           buffer_read_u8(buf, &token->name_len) &&
-          buffer_read_bytes(buf, token->name, MAX_TOKEN_NAME_LEN, token->name_len) &&
-          buffer_read_u8(buf, &token->version))) {
+          buffer_read_bytes(buf, token->name, MAX_TOKEN_NAME_LEN, token->name_len))) {
         // if any buffer read fail
         return false;
     }
