@@ -10,7 +10,6 @@ fake = Faker()
 def test_sign_token(cmd):
     token = fake_token()
     response = cmd.sign_token_data(token)
-    print('sign_token response:', response)
 
 
 def test_send_token_data(cmd):
