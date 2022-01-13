@@ -1,11 +1,12 @@
-from typing import Optional
+from typing import Optional, Union
 
 
 class TokenError(Exception):
     pass
 
 class Token:
-    def __init__(self, version: int, symbol: str, name: str, uid_hex: str):
+    def __init__(self, version: int, symbol: str, name: str, uid: Union[str, bytes]):
+        uid_hex = uid.hex() if isinstance(uid, bytes) else uid
         assert len(uid_hex) == 64
         self.version = version
         self.symbol = symbol

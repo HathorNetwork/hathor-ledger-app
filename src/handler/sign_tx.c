@@ -18,6 +18,8 @@
 #include "../common/read.h"
 #include "../transaction/types.h"
 #include "../transaction/deserialize.h"
+#include "../token/token_parser.h"
+#include "../token/types.h"
 
 /**
  * Verify that the given output address (pubkey hash) is ours and
@@ -241,10 +243,17 @@ bool _decode_elements() {
             // still decoding tokens, but this one was divided between calls
             THROW(TX_STATE_READY);
         }
-        // Safely discard data
+        uint8_t uid[TOKEN_UID_LEN] = {0};
+        memmove(uid, G_context.tx_info.buffer, TOKEN_UID_LEN);
+
+        // check uid is on registry
+        int8_t registry_index = find_token_registry_index(uid);
+        if (registry_index == -1) THROW(TX_STATE_ERR);  // not on registry, token MUST be verified
+        G_context.tx_info.tokens[G_context.tx_info.tokens_len++] =
+            &G_token_symbols.tokens[registry_index];
+
         G_context.tx_info.remaining_tokens--;
         G_context.tx_info.buffer_len -= TOKEN_UID_LEN;
-        // G_context.tx_info.elem_type = ELEM_TOKEN_UID;
         memmove(G_context.tx_info.buffer,
                 G_context.tx_info.buffer + TOKEN_UID_LEN,
                 G_context.tx_info.buffer_len);
@@ -280,9 +289,21 @@ bool _decode_elements() {
         size_t output_len =
             parse_output(G_context.tx_info.buffer, G_context.tx_info.buffer_len, &output);
 
+        // check the output token_data is correct
+        if (output.token_data & TOKEN_DATA_AUTHORITY_MASK) {
+            // authority outputs are not allowed!
+            THROW(TX_STATE_ERR);
+        }
+        // We exclude the equal case since index == 0 means HTR
+        if ((output.token_data & TOKEN_DATA_INDEX_MASK) > G_context.tx_info.tokens_len) {
+            // index out of bounds
+            THROW(TX_STATE_ERR);
+        }
+
+        // token exists and it's in the tokens array
+
         // set output index and prepare for next parse
         output.index = G_context.tx_info.current_output++;
-        // G_context.tx_info.elem_type = ELEM_OUTPUT;
 
         // If this output was a change output, we require extra validation
         if (G_context.tx_info.has_change_output &&
@@ -329,7 +350,6 @@ tx_decoder_state_e decode_elements() {
     volatile tx_decoder_state_e result;
     BEGIN_TRY {
         TRY {
-            // for (;;) _decode_elements();
             while (_decode_elements()) {
                 ;
             }

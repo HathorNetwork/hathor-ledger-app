@@ -42,7 +42,7 @@ typedef struct {
     uint8_t p1;     /// Instruction parameter 1
     uint8_t p2;     /// Instruction parameter 2
     uint8_t lc;     /// Lenght of command data
-    uint8_t *data;  /// Command data
+    uint8_t* data;  /// Command data
 } command_t;
 
 /**
@@ -103,10 +103,13 @@ typedef struct {
     uint8_t buffer_output_index;
     tx_output_t outputs[10];  // max num of outputs on a call is 7
     tx_output_t decoded_output;
+    // tokens is an array of ptrs to save memory since these tokens are already on a global ctx
+    token_symbol_t* tokens[TX_MAX_TOKENS];
+    uint8_t tokens_len;
 } sign_tx_ctx_t;
 
 typedef struct {
-    uint8_t offset;
+    uint8_t len;
     token_symbol_t tokens[TX_MAX_TOKENS];
 } token_data_ctx_t;
 
