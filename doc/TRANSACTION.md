@@ -10,7 +10,7 @@ The hathor transaction serialized
 
 | Field | Size (bytes) | Description |
 | --- | :---: | --- |
-| `change info` | var | Bytes representing the existence of a change output and the bip32 path of the change address |
+| `change_info` | var | Bytes representing the existence of a change output and the bip32 path of the change address |
 | `tx_version` | 2 | TX Version, indicates this is a transaction, block, etc. |
 | `num_tokens` | 1 | Number of token UIDs present on the data below |
 | `num_inputs` | 1 | Number of inputs present on the data below |
@@ -23,13 +23,21 @@ The hathor transaction serialized
 
 | Field | Size | Description |
 | --- | --- | --- |
-| `has_change_output` | 1bit | Indicates existence of a change output.<br>(mask `0x80`)<br>If false, the whole first byte is 0. |
-| `change bip32 path length` | 4bits | if `has_change_output=true` this will be the last 4 bits of the first byte<br>(mask `0x0F`) |
-| `change output index` | 1 byte | the index of the change output |
+| `num_change_outputs` | 1 byte | The number of change outputs on this tx. |
+| `change_output_info` | var | list of change outputs info. |
+
+#### Change Output info
+
+| Field | Size | Description |
+| --- | --- | --- |
+| `change_output_index` | 1 byte | the index of the change output |
+| `change_bip32_path_length` | 1 byte | The length of the bip32 path |
 | `change bip32 path` | var (`4*bip32_path_length`) | an array of 32bit unsigned integers of the path indexes |
 
-Obs: bip32 paths have a hard depth limitation of 5, so the max value of the change info is 22 bytes
+Obs: bip32 paths have a hard depth limitation of 5, so the max value of the change output info is 22 bytes.
 
+We don't have to indicate which token this is a change for since the output has that data.
+We don't validate if there is a max of 1 change per token.
 
 #### TX Output
 
@@ -37,10 +45,10 @@ Obs: bip32 paths have a hard depth limitation of 5, so the max value of the chan
 | --- | --- | --- |
 | `value` | 4 or 8 | value of the output, first bit indicates if it's 4 or 8 bytes.<br>If 0: unsigned 32bit integer<br>If 1: value is the negative of the signed 64 bit integer |
 | `token_data` | 1 | token data |
-| `script length` | 2 | length of the script |
+| `script_length` | 2 | length of the script |
 | `script` | var (`script_length`) | script of the output |
 
-Obs: currently only P2PKH is supported for the script and only HTR tokens
+Obs: currently only P2PKH is supported for the script
 
 #### TX Input
 
@@ -54,7 +62,7 @@ Obs: currently only P2PKH is supported for the script and only HTR tokens
 
 Deterministic ECDSA ([RFC 6979](https://tools.ietf.org/html/rfc6979)) is used to sign transaction on the [SECP-256k1](https://www.secg.org/sec2-v2.pdf#subsubsection.2.4.1) curve.
 The SDK call used should be `cx_ecdsa_sign` of the message.
-The message is everything after the `change_info` (the `sighash_all`).
+The message is everything after the `change_info` (i.e. the `sighash_all`).
 
 ## Address format
 

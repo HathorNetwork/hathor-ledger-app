@@ -67,16 +67,10 @@
 
 Change info:
 
-| Have change output | Cdata |
+| Field | Cdata |
 | --- | --- |
-| `false` | `0x00 (1)` |
-| `true` | `first bit on + len(change_bip32_path) (1)` \|\|<br> `change output index (1)` \|\|<br> `bip32_path{1} (4)` \|\|<br>`...` \|\|<br>`bip32_path{n} (4)` |
-
-- `len(change_bip32_path)` can have a low hard limit (i.e. 5) so we can interpret this only with 4 bits, and since `has_change_output` is a boolean, we can use a byte to represent both.
-    - The byte: `A____ BBBB` where A is the `has_change_output` and B is the `len(bip_32_path)`
-- `change_output_index`: omit if `has_change_output` is false
-- The next 4c bytes (c being `len(change_bip_32_path)`) are the bip32_path.
-
+| `num_change_outputs` | 1 byte unsigned int |
+| `change_output_info(1...n)` | `change_output_index (1)` \|\|<br> `len(change_bip32_path) (1)` \|\|<br> `bip32_path{1} (4)` \|\|<br>`...` \|\|<br>`bip32_path{n} (4)` |
 
 ### Response
 
@@ -87,6 +81,68 @@ Change info:
 | end | 0 | 0x9000 | - |
 
 On the `data` and `sign` stages each call receives a `SW_OK` when processing is done (or upon user confirmation) so the caller can send more data.
+
+## SIGN_TOKEN_DATA
+
+### Command
+
+| CLA | INS | P1 | P2 | Lc | CData |
+| --- | --- | --- | --- | --- | --- |
+| 0xE0 | 0x07 | 0x00 | 0x00 | 0x00-0x46 | `version (1)` \|\|<br> `uid (32)` \|\|<br>`symbol_len (1)` \|\|<br>`symbol (symbol_len)` \|\|<br>`name_len (1)` \|\|<br>`name (name_len)` |
+
+- `symbol` and `name` are UTF-8 encoded but due to a display limitation on ledger we only allow ascii printable characters, making the limits 5 and 30 bytes respectively.
+- `uid` is the transaction id that created this token.
+- `version` is always 1 (0x01).
+    - This is a way to accomodate for future tokens that may not use the structure described above.
+    - If a new type of token is created it will be passed as a version 2 token and so forth.
+
+### Response
+
+| Response length (bytes) | SW | RData |
+| --- | --- | --- |
+| 32 | 0x9000 | `signature (var)` |
+
+## SEND_TOKEN_DATA
+
+### Command
+
+| CLA | INS | P1 | P2 | Lc | CData |
+| --- | --- | --- | --- | --- | --- |
+| 0xE0 | 0x08 | 0x00 | 0x00 | 0x00-0x66 | `version (1)` \|\|<br> `uid (32)` \|\|<br>`symbol_len (1)` \|\|<br>`symbol (symbol_len)` \|\|<br>`name_len (1)` \|\|<br>`name (name_len)` \|\|<br>`signature (32)` |
+
+### Response
+
+| Response length (bytes) | SW | RData |
+| --- | --- | --- |
+| 0 | 0x9000 | - |
+
+## VERIFY_TOKEN_SIGNATURE
+
+### Command
+
+| CLA | INS | P1 | P2 | Lc | CData |
+| --- | --- | --- | --- | --- | --- |
+| 0xE0 | 0x09 | 0x00 | 0x00 | 0x00-0x66 | `version (1)` \|\|<br> `uid (32)` \|\|<br>`symbol_len (1)` \|\|<br>`symbol (symbol_len)` \|\|<br>`name_len (1)` \|\|<br>`name (name_len)` \|\|<br>`signature (32)` |
+
+### Response
+
+| Response length (bytes) | SW | RData |
+| --- | --- | --- |
+| 0 | 0x9000 | - |
+
+## RESET_TOKEN_SIGNATURES
+
+### Command
+
+| CLA | INS | P1 | P2 | Lc | CData |
+| --- | --- | --- | --- | --- | --- |
+| 0xE0 | 0x0A | 0x00 | 0x00 | 0x00 | - |
+
+### Response
+
+| Response length (bytes) | SW | RData |
+| --- | --- | --- |
+| 0 | 0x9000 | - |
 
 ## Status Words
 
