@@ -1,6 +1,7 @@
 import pytest
 
-from app_client.exception import BOLOSPathPrefixError, WrongDataLengthError
+from app_client.exception import WrongDataLengthError
+
 
 def test_address(cmd):
     cmd.get_address(bip32_path="m/44'/280'/0'/0")

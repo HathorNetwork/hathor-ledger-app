@@ -1,5 +1,5 @@
-from typing import Tuple
 from abc import ABCMeta, abstractmethod
+from typing import Tuple
 from urllib.parse import urljoin
 
 from requests import Session
@@ -12,7 +12,6 @@ class ApduTransport(metaclass=ABCMeta):
 
 
 class TransportAPI(ApduTransport):
-
     def __init__(self, server: str) -> None:
         self.server = server
         self.session = Session()
@@ -24,15 +23,15 @@ class TransportAPI(ApduTransport):
         return urljoin(self.server, path)
 
     def exchange_apdu_raw(self, data: bytes) -> Tuple[int, bytes]:
-        print('Transport =====')
+        print("Transport =====")
         print(data.hex())
-        url = self.endpoint('/apdu')
+        url = self.endpoint("/apdu")
         print(url)
         response = self.session.post(url, json={"data": data.hex()})
         print(response.status_code, response.text)
         if response.status_code != 200:
-            raise Exception('Exchange failed with {}'.format(data.hex()))
+            raise Exception("Exchange failed with {}".format(data.hex()))
         rdata = response.json()
-        cdata = rdata['data']
-        sw = int.from_bytes(bytes.fromhex(cdata[-4:]), byteorder='big', signed=False)
+        cdata = rdata["data"]
+        sw = int.from_bytes(bytes.fromhex(cdata[-4:]), byteorder="big", signed=False)
         return sw, bytes.fromhex(cdata[:-4])

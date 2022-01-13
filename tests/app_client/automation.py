@@ -1,9 +1,9 @@
-from typing import Tuple
+import operator
 from abc import ABCMeta, abstractmethod
-from urllib.parse import urljoin
 from enum import IntEnum
 from functools import reduce
-import operator
+from typing import Tuple
+from urllib.parse import urljoin
 
 from requests import Session
 
@@ -20,17 +20,23 @@ class Button(IntEnum):
 
 
 class Rules:
-    ''' Automation rules and schema are defined in https://speculos.ledger.com/user/automation.html
-    This class will not implement all functionalities, only the ones we need for our tests.
+    """Automation rules and schema are defined in
+        https://speculos.ledger.com/user/automation.html
+        This class will not implement all functionalities,
+        only the ones we need for our tests.
 
     4 action types are available:
-    ["button", num, pressed] : press (pressed=true) or release (pressed=false) a button (num=1 for left, num=2 for right)
-    [ "finger", x, y, touched ]: touch (touched=true) or release (touched=false) the screen (x and y coordinates)
-    [ "setbool", varname, value ]: set a variable whose name is varname to a boolean value (either true or false)
-    [ "exit" ]: exit speculos
+    ["button", num, pressed]    : press (pressed=true) or release (pressed=false)
+                                    a button (num=1 for left, num=2 for right)
+    ["finger", x, y, touched]   : touch (touched=true) or release (touched=false)
+                                    the screen (x and y coordinates)
+    ["setbool", varname, value] : set a variable whose name is varname to a boolean
+                                    value (either true or false)
+    ["exit"]                    : exit speculos
 
     Obs: The "finger" action only applies to blue which we do not support
-    '''
+    """
+
     go_right = [
         ["button", Button.RIGHT.value, True],
         ["button", Button.RIGHT.value, False],
@@ -48,11 +54,7 @@ class Rules:
         ["button", Button.RIGHT.value, False],
     ]
 
-    default_rule = {
-        "actions": [
-            ["setbool", "default_match", True]
-        ]
-    }
+    default_rule = {"actions": [["setbool", "default_match", True]]}
 
     @classmethod
     def actions(cls, acts):
@@ -69,9 +71,9 @@ class Rules:
         rule = {}
         if text:
             if is_regex:
-                rule['regexp'] = text
+                rule["regexp"] = text
             else:
-                rule['text'] = text
+                rule["text"] = text
         if conditions:
             conds = []
             for varname, flag in conditions:
@@ -91,11 +93,11 @@ class Rules:
         return [
             cls.rule(
                 cls.go_left,
-                text='Address',
+                text="Address",
             ),
             cls.rule(
                 cls.press_both,
-                text='Approve',
+                text="Approve",
             ),
             cls.default_rule,
         ]
@@ -109,7 +111,7 @@ class Rules:
         return [
             cls.rule(
                 acts,
-                text='access?',
+                text="access?",
             ),
             cls.default_rule,
         ]
@@ -118,7 +120,7 @@ class Rules:
     def sign_tx_reject_output_rule(cls):
         acts = cls.actions([cls.go_left, cls.press_both])
         return [
-            cls.rule(acts, text='Output'),
+            cls.rule(acts, text="Output"),
             cls.default_rule,
         ]
 
@@ -127,8 +129,8 @@ class Rules:
         output_acts = cls.actions([cls.go_left, cls.go_left, cls.press_both])
         send_acts = cls.actions([cls.go_left, cls.press_both])
         return [
-            cls.rule(output_acts, text='Output'),
-            cls.rule(send_acts, text='Transaction?'),
+            cls.rule(output_acts, text="Output"),
+            cls.rule(send_acts, text="Transaction?"),
             cls.default_rule,
         ]
 
@@ -137,8 +139,8 @@ class Rules:
         output_acts = cls.actions([cls.go_left, cls.go_left, cls.press_both])
         send_acts = cls.actions([cls.go_left, cls.go_left, cls.press_both])
         return [
-            cls.rule(output_acts, text='Output'),
-            cls.rule(send_acts, text='Transaction?'),
+            cls.rule(output_acts, text="Output"),
+            cls.rule(send_acts, text="Transaction?"),
             cls.default_rule,
         ]
 
@@ -159,13 +161,11 @@ class FakeAutomation(Automation):
     def set_accept_all(self):
         pass
 
-
     def close(self) -> None:
         pass
 
 
 class CommandAutomation:
-
     def __init__(self, server: str) -> None:
         self.server = server
         self.session = Session()
@@ -179,25 +179,28 @@ class CommandAutomation:
     def automation(self, rules: dict) -> None:
         print("Automation ======")
         print(rules)
-        url = self.endpoint('/automation')
+        url = self.endpoint("/automation")
         print(url)
-        response = self.session.post(url, json={
-            "version": 1,
-            "rules": rules,
-        })
+        response = self.session.post(
+            url,
+            json={
+                "version": 1,
+                "rules": rules,
+            },
+        )
         print(response.status_code, response.text)
         if response.status_code != 200:
-            raise Exception('automation failed')
+            raise Exception("automation failed")
 
     def set_accept_all(self):
         rules = [
-            Rules.rule(Rules.go_left, 'Address'),
-            Rules.rule(Rules.go_left, 'Output'),
-            Rules.rule(Rules.go_left, 'Transaction?'),
-            Rules.rule(Rules.go_left, 'access?'),
-            Rules.rule(Rules.go_left, 'Confirm token data'),
-            Rules.rule(Rules.go_left, 'Reset token signatures'),
-            Rules.rule(Rules.go_left, 'Reject'),
-            Rules.rule(Rules.press_both, 'Approve')
+            Rules.rule(Rules.go_left, "Address"),
+            Rules.rule(Rules.go_left, "Output"),
+            Rules.rule(Rules.go_left, "Transaction?"),
+            Rules.rule(Rules.go_left, "access?"),
+            Rules.rule(Rules.go_left, "Confirm token data"),
+            Rules.rule(Rules.go_left, "Reset token signatures"),
+            Rules.rule(Rules.go_left, "Reject"),
+            Rules.rule(Rules.press_both, "Approve"),
         ]
         self.automation(rules)

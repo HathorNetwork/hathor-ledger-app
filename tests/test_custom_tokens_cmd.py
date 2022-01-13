@@ -2,14 +2,14 @@ import pytest
 from faker import Faker
 
 from app_client.exception import InvalidSignatureError
-
 from utils import fake_token
 
 fake = Faker()
 
+
 def test_sign_token(cmd):
     token = fake_token()
-    response = cmd.sign_token_data(token)
+    cmd.sign_token_data(token)
 
 
 def test_send_token_data(cmd):

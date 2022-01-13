@@ -17,3 +17,11 @@ jobs:
           source: './src'
           extensions: 'h,c'
           clangFormatVersion: 11
+
+      - name: Install Poetry
+        run: |
+          apt -qy update && apt install -qy make
+          pip -q --no-input install poetry
+
+      - name: Lint tests
+        run: cd tests && make install && make check

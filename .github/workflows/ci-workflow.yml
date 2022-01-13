@@ -78,11 +78,15 @@ jobs:
           name: hathor-app-debug
           path: bin
 
+      - name: Install Poetry
+        run: |
+          apt update && apt install -qy make gcc  # /!\ workaround for pysha3
+          pip -q --no-input install poetry
+
       - name: Run test
         run: |
-          apt update && apt install -qy gcc  # /!\ workaround for pysha3
           nohup bash -c "python /speculos/speculos.py bin/app.elf --sdk 2.0 --display headless" > speculos.log 2<&1 &
-          cd tests && pip install -r requirements.txt && pytest --headless
+          cd tests && make install && make test
 
       - name: Upload Speculos log
         uses: actions/upload-artifact@v2
