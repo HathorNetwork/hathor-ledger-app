@@ -212,25 +212,87 @@ UX_FLOW(ux_display_tx_output_flow,
         &ux_display_reject_step,         // reject => return error
         FLOW_LOOP);
 
+// Return true if we are showing something to the user
+// The caller can use this as a signal to halt any other display processing
+bool check_output_index_state() {
+    // Check that we have reached the end of outputs array, show sign tx confirmation
+    if (G_context.tx_info.confirmed_outputs == G_context.tx_info.outputs_len) {
+        G_context.state = STATE_PARSED;
+        ui_display_tx_confirm();
+        return true;
+    }
+    // Check that we have showed all outputs on local buffer and request more data
+    if (G_context.tx_info.display_index == G_context.tx_info.buffer_output_len) {
+        G_context.tx_info.buffer_output_len = 0;
+        G_context.tx_info.display_index = 0;
+        // request more data
+        io_send_sw(SW_OK);
+        ui_menu_main();
+        return true;
+    }
+    return false;
+}
+
+void inplace_selection_sort(size_t len, uint8_t *list) {
+    size_t i, j, position;
+    uint8_t tmp;
+    for (i=0;i<(len-1);i++) {
+        position = i;
+        for (j=i+1;j<len;j++) {
+            if(list[position]>list[j]) position=j;
+        }
+        if (position != i) {
+            tmp = list[position];
+            list[position] = list[i];
+            list[i] = tmp;
+        }
+    }
+}
+
+bool skip_change_outputs() {
+    if (G_context.tx_info.change_len == 0) {
+        // no change to skip
+        return false;
+    }
+    // confirmed outputs holds the true current output index
+    uint8_t change_indices[1+TX_MAX_TOKENS];
+    for(uint8_t i=0; i<G_context.tx_info.change_len; i++) {
+        change_indices[i] = G_context.tx_info.change_info[i].index;
+    }
+    inplace_selection_sort((size_t)G_context.tx_info.change_len, change_indices);
+
+    for(uint8_t i=0; i<G_context.tx_info.change_len; i++) {
+        if (G_context.tx_info.confirmed_outputs == change_indices[i]) {
+            // we are on a change index
+            G_context.tx_info.display_index++;
+            G_context.tx_info.confirmed_outputs++;
+            if (check_output_index_state()) return true;
+        }
+    }
+
+    return false;
+}
+
 /**
  * Prepare the UX screen values of the current output to confirm
  */
-void prepare_display_output() {
-    if (G_context.tx_info.has_change_output &&
-        G_context.tx_info.confirmed_outputs == G_context.tx_info.change_output_index) {
-        G_context.tx_info.display_index++;
-        G_context.tx_info.confirmed_outputs++;
-    }
+bool prepare_display_output() {
+    // Check we have confirmed all outputs before attempting to display
+    if (check_output_index_state()) return true;
+    // skip change outputs if we have any
+    if (skip_change_outputs()) return true;
 
     tx_output_t output = G_context.tx_info.outputs[G_context.tx_info.display_index];
 
     // set g_output_index
     uint8_t total_outputs = G_context.tx_info.outputs_len;
     uint8_t fake_output_index = output.index + 1;
-    if (G_context.tx_info.has_change_output) {
-        total_outputs--;
-        if (output.index > G_context.tx_info.change_output_index) {
-            fake_output_index--;
+    if (G_context.tx_info.change_len != 0) {
+        // Remove change outputs from total
+        total_outputs -= G_context.tx_info.change_len;
+        for(uint8_t i=0; i<G_context.tx_info.change_len; i++) {
+            // Decrease 1 for each change output behind current output
+            if (output.index > G_context.tx_info.change_info[i].index) fake_output_index--;
         }
     }
     itoa(fake_output_index, g_output_index, 10);
@@ -265,31 +327,16 @@ void prepare_display_output() {
     strcpy(g_amount, symbol);
     g_amount[symbol_len] = ' ';
     format_value(output.value, g_amount + symbol_len + 1);
+    return false;
 }
 
 void ui_confirm_output(bool choice) {
     if (choice) {
         G_context.tx_info.display_index++;
         G_context.tx_info.confirmed_outputs++;
-        if (G_context.tx_info.has_change_output &&
-            G_context.tx_info.confirmed_outputs == G_context.tx_info.change_output_index) {
-            G_context.tx_info.display_index++;
-            G_context.tx_info.confirmed_outputs++;
-        }
-        if (G_context.tx_info.confirmed_outputs == G_context.tx_info.outputs_len) {
-            // G_context.state = STATE_APPROVED;
-            // io_send_sw(SW_OK);
-            G_context.state = STATE_PARSED;
-            ui_display_tx_confirm();
-            return;
-        }
-        if (G_context.tx_info.display_index == G_context.tx_info.buffer_output_index) {
-            G_context.tx_info.buffer_output_index = 0;
-            G_context.tx_info.display_index = 0;
-            io_send_sw(SW_OK);
-            ui_menu_main();
-            return;
-        }
+        // return if we are requesting more data or we have confirmed all outputs
+        if (skip_change_outputs()) return;
+        // Show next output from buffer
         ui_display_tx_outputs();
     } else {
         explicit_bzero(&G_context, sizeof(G_context));
@@ -299,7 +346,8 @@ void ui_confirm_output(bool choice) {
 }
 
 int ui_display_tx_outputs() {
-    prepare_display_output();
+    // skip changes, return ok if there is no more on buffer
+    if (prepare_display_output()) return 0;
     g_validate_callback = &ui_confirm_output;  // show next until need more
     ux_flow_init(0, ux_display_tx_output_flow, NULL);
 

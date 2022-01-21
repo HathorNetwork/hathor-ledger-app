@@ -9,7 +9,7 @@ class TransactionError(Exception):
 
 
 class TxInput:
-    def __init__(self, tx_id: bytes, index: int, bip32_path: List[int] = None):
+    def __init__(self, tx_id: bytes, index: int, bip32_path: str = None):
         assert len(tx_id) == 32
         self.tx_id = tx_id
         self.index = index
@@ -19,18 +19,6 @@ class TxInput:
         return b"".join(
             [self.tx_id, self.index.to_bytes(1, byteorder="big"), b"\x00\x00"]
         )
-
-    def validate_address(self, bip32_path: List[int]) -> bool:
-        if self.bip32_path is None:
-            raise TransactionError("Input: no self.bip32_path")
-
-        if len(bip32_path) != len(self.bip32_path):
-            return False
-
-        for i in range(len(bip32_path)):
-            if self.bip32_path[i] != bip32_path[i]:
-                return False
-        return True
 
     @classmethod
     def from_bytes(cls, hexa: Union[bytes, BytesIO]):

@@ -12,8 +12,8 @@ def fake_path() -> str:
     return "m/44'/280'/0'/0/{}".format(fake.pyint(0, 255))
 
 
-def fake_script() -> bytes:
-    pkh = fake.binary(length=20)
+def fake_script(pubkey_hash: Optional[bytes] = None) -> bytes:
+    pkh = pubkey_hash if pubkey_hash is not None else fake.binary(length=20)
     # P2PKH script with random pubkey hash
     return b"".join([b"\x76\xa9\x14", pkh, b"\x88\xac"])
 

@@ -25,13 +25,13 @@
  * Verify that the given output address (pubkey hash) is ours and
  * may be generated from by deriving on the given bip32 path
  **/
-bool verify_address(tx_output_t output, bip32_path_t path) {
+bool verify_change(change_output_info_t info, tx_output_t output) {
     uint8_t hash[PUBKEY_HASH_LEN] = {0};
     cx_ecfp_public_key_t public_key = {0};
     cx_ecfp_private_key_t private_key = {0};
     uint8_t chain_code[32];
 
-    derive_private_key(&private_key, chain_code, path.path, path.length);
+    derive_private_key(&private_key, chain_code, info.path.path, info.path.length);
     init_public_key(&private_key, &public_key);
     compress_public_key(public_key.W);
     hash160(public_key.W, 33, hash);
@@ -48,50 +48,115 @@ bool verify_address(tx_output_t output, bip32_path_t path) {
  * Read change information
  *
  * first byte:
- *  - 1 bit for the boolean `has_change_output`
- *  - the change address bip32 path length is the unsigned 7 bit integer (cast to 8 bit)
- * if `has_change_output` is true:
- *  - 1 byte for change output index
- *  - read the bip32 path (length was read on the first byte)
+ *  - 1 bit for the number of change outputs
+ *  - for each change output:
+ *      - 1 byte for change output index
+ *      - read the bip32 path
  *
- * The output will be on the global context for sign tx (`tx_info`)
+ * The outputs will be on the global context for sign tx (`tx_info`)
  **/
-void read_change_output_info(buffer_t *cdata) {
-    uint8_t tmp;
-
-    // 1 byte for has_change_output and bip32 path len
-    if (!buffer_read_u8(cdata, &tmp)) {
+void read_change_info_v1(buffer_t *cdata) {
+    if (!buffer_read_u8(cdata, &G_context.tx_info.change_len)) {
         THROW(SW_WRONG_DATA_LENGTH);
     }
 
-    // The first bit indicates the existence of a change output
-    G_context.tx_info.has_change_output = (tmp & 0x80) > 0 ? true : false;
+    if (G_context.tx_info.change_len > TX_MAX_TOKENS+1) {
+        // Some token change is duplicated or we have more tokens than allowed
+        THROW(SW_WRONG_DATA_LENGTH);
+    }
 
-    if (G_context.tx_info.has_change_output) {
-        uint8_t buffer[1 + 4 * MAX_BIP32_PATH] = {0};
-        buffer[0] = tmp & 0x0F;
+    for(uint8_t i = 0; i < G_context.tx_info.change_len; i++) {
+        change_output_info_t *info = &G_context.tx_info.change_info[i];
+
         // 1 byte for change output index
-        if (!buffer_read_u8(cdata, &G_context.tx_info.change_output_index)) {
+        if (!buffer_read_u8(cdata, &info->index)) {
             THROW(SW_WRONG_DATA_LENGTH);
         }
 
-        // the remainder of the first byte was used to represent the bip32 path length of the change
-        // path
-        if (buffer[0] > MAX_BIP32_PATH) {
+        // bip32 path (path length + path data)
+        if (!buffer_read_bip32_path(cdata, &info->path)) {
             THROW(SW_WRONG_DATA_LENGTH);
         }
+    }
+}
 
-        if (cdata->size - cdata->offset < 4 * buffer[0]) {
-            THROW(SW_WRONG_DATA_LENGTH);
-        }
-        memmove(buffer + 1, cdata->ptr + cdata->offset, 4 * buffer[0]);
-        buffer_seek_cur(cdata, 4 * buffer[0]);
+/**
+ * Read change information
+ *
+ * first byte:
+ *  - 1 bit for the number of change outputs
+ *  - for each change output:
+ *      - 1 byte for change output index
+ *      - read the bip32 path
+ *
+ * The outputs will be on the global context for sign tx (`tx_info`)
+ **/
+void read_change_info_old_protocol(uint8_t change_byte, buffer_t *cdata) {
+    uint8_t buffer[1 + 4 * MAX_BIP32_PATH] = {0};
+    // Old protocol only allow 1 change output
+    // and we already checked that there is an output present
+    G_context.tx_info.change_len = 1;
+    change_output_info_t *info = &G_context.tx_info.change_info[0];
 
-        buffer_t bufdata = {.ptr = buffer, .size = 1 + 4 * MAX_BIP32_PATH, .offset = 0};
+    if (!buffer_read_u8(cdata, &info->index)) {
+        THROW(SW_WRONG_DATA_LENGTH);
+    }
 
-        // buffer holds the serialized bip32 path that was read from cdata
-        if (!buffer_read_bip32_path(&bufdata, &G_context.tx_info.change_bip32_path)) {
-            THROW(SW_WRONG_DATA_LENGTH);
+    buffer[0] = change_byte & 0x0F;
+
+    // validate that the path length is valid
+    if (buffer[0] > MAX_BIP32_PATH) {
+        THROW(SW_WRONG_DATA_LENGTH);
+    }
+    // check we have enough data to read the path
+    if (cdata->size - cdata->offset < 4 * buffer[0]) {
+        THROW(SW_WRONG_DATA_LENGTH);
+    }
+
+    memmove(buffer + 1, cdata->ptr + cdata->offset, 4 * buffer[0]);
+    buffer_seek_cur(cdata, 4 * buffer[0]);
+    buffer_t bufdata = {.ptr = buffer, .size = 1 + 4 * MAX_BIP32_PATH, .offset = 0};
+
+    // bip32 path (path length + path data)
+    if (!buffer_read_bip32_path(&bufdata, &info->path)) {
+        THROW(SW_WRONG_DATA_LENGTH);
+    }
+}
+
+/**
+ * Read change information
+ *
+ * First byte is the version byte for the protocol (for transactions)
+ * It will be used to differentiate the old and new protocols
+ **/
+void read_change_info(buffer_t *cdata) {
+    uint8_t proto_version;
+    if (!buffer_read_u8(cdata, &proto_version)) {
+        THROW(SW_WRONG_DATA_LENGTH);
+    }
+
+    // check first byte for backwards compatibility
+    // - if proto_version == 0: old protocol, no change
+    // - else:
+    //      - first bit == 1: old protocol, with change
+    //      - else:
+    //          - proto_version == 1: new protocol
+    //          - else: error
+
+    if (proto_version == 0) {
+        // old protocol, no change
+        G_context.tx_info.change_len = 0;
+        return;
+    }
+
+    if (proto_version & 0x80) {
+        read_change_info_old_protocol(proto_version, cdata);
+    } else {
+        if (proto_version == 1) {
+            read_change_info_v1(cdata);
+        } else {
+            // error
+            THROW(SW_INVALID_TX);
         }
     }
 }
@@ -122,6 +187,7 @@ void read_tx_data(buffer_t *cdata) {
         // if an error occurs reading
         THROW(SW_WRONG_DATA_LENGTH);
     }
+    // TODO: check that no change index is gte to outputs_len?
 }
 
 /**
@@ -209,7 +275,7 @@ void init_sign_tx_ctx() {
     G_context.tx_info.buffer_len = 0;
     G_context.tx_info.confirmed_outputs = 0;
     G_context.state = STATE_RECV_DATA;
-    G_context.tx_info.has_change_output = false;
+    G_context.tx_info.change_len = 0;
     G_context.tx_info.current_output = 0;
 
     cx_sha256_init(&G_context.tx_info.sha256);
@@ -305,11 +371,18 @@ bool _decode_elements() {
         // set output index and prepare for next parse
         output.index = G_context.tx_info.current_output++;
 
-        // If this output was a change output, we require extra validation
-        if (G_context.tx_info.has_change_output &&
-            G_context.tx_info.change_output_index == output.index) {
-            if (!verify_address(output, G_context.tx_info.change_bip32_path)) {
-                THROW(TX_STATE_ERR);
+        // If this output is a change output, we require extra validation
+        if (G_context.tx_info.change_len > 0) {
+            // search for an output with this index
+            for (uint8_t i = 0; i < G_context.tx_info.change_len; i++) {
+                change_output_info_t info = G_context.tx_info.change_info[i];
+                // check if index matches
+                if (output.index == info.index) {
+                    // verify change output is going to user's wallet
+                    if(!verify_change(info, output)) {
+                        THROW(TX_STATE_ERR);
+                    }
+                }
             }
         }
         // We have already read and parsed the output, move the buffer so we can parse the next one
@@ -319,11 +392,11 @@ bool _decode_elements() {
                 G_context.tx_info.buffer_len);
         // Save the output on the global context for user confirmation
         output_len = sizeof(G_context.tx_info.outputs) / sizeof(G_context.tx_info.outputs[0]);
-        if (G_context.tx_info.buffer_output_index >= output_len) {
+        if (G_context.tx_info.buffer_output_len >= output_len) {
             // prevent overflow
             THROW(TX_STATE_ERR);
         }
-        G_context.tx_info.outputs[G_context.tx_info.buffer_output_index++] = output;
+        G_context.tx_info.outputs[G_context.tx_info.buffer_output_len++] = output;
     } else {
         // We've reached the end of what we should read but the buffer isn't empty
         THROW(TX_STATE_ERR);
@@ -388,7 +461,7 @@ bool receive_data(buffer_t *cdata, uint8_t chunk) {
 
         init_sign_tx_ctx();
         // read change output and sighash
-        read_change_output_info(cdata);
+        read_change_info(cdata);
         // sighash_all_hash won't move cdata.offset
         sighash_all_hash(cdata);
         read_tx_data(cdata);
@@ -419,7 +492,7 @@ bool receive_data(buffer_t *cdata, uint8_t chunk) {
             ui_menu_main();
             return true;
         case TX_STATE_READY:
-            if (G_context.tx_info.buffer_output_index != 0) {
+            if (G_context.tx_info.buffer_output_len != 0) {
                 // We have an output for the user to confirm.
                 // Validate parsed outputs and return sw_ok upon user confirmation
                 // if the last output was reached, confirm the transaction send.
@@ -441,7 +514,7 @@ int handler_sign_tx(buffer_t *cdata, sing_tx_stage_e stage, uint8_t chunk) {
     // - SIGN_TX_STAGE_SIGN: TX was received and approved by user, caller requests signing
     // - SIGN_TX_STAGE_DATA: Receiving TX in chunks
     G_context.tx_info.display_index = 0;
-    G_context.tx_info.buffer_output_index = 0;
+    G_context.tx_info.buffer_output_len = 0;
     switch (stage) {
         case SIGN_TX_STAGE_DONE:
             // Caller is done with this request, cleanup and return SW_OK.

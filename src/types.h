@@ -77,6 +77,14 @@ typedef struct {
 } xpub_ctx_t;
 
 /**
+ * Structure for change output information.
+ */
+typedef struct {
+    uint8_t index;
+    bip32_path_t path;
+} change_output_info_t;
+
+/**
  * Structure for transaction information context.
  */
 typedef struct {
@@ -86,7 +94,8 @@ typedef struct {
     cx_sha256_t sha256;
     uint8_t sighash_all[32];
 
-    bool has_change_output;
+    uint8_t change_len;
+    change_output_info_t change_info[1 + TX_MAX_TOKENS]; // TX_MAX_TOKENS + HTR
     uint8_t change_output_index;
     bip32_path_t change_bip32_path;
     // tx
@@ -95,12 +104,17 @@ typedef struct {
     uint8_t remaining_inputs;
     uint8_t outputs_len;
 
-    // type of decoded element
-    // uint8_t elem_type;
+    // index of the current output being decoded
     uint8_t current_output;
+    // index of the output we should display, relative to outputs buffer
+    // Once this reaches buffer_output_len, we should request more data
     uint8_t display_index;
+    // number of outputs that are confirmed by the user + change outputs confirmed by the ledger
+    // once this reaches outputs_len, we should ask confirmation to sign the transaction
+    // This is the only index relative to outputs_len
     uint8_t confirmed_outputs;
-    uint8_t buffer_output_index;
+    // number of outputs that we have decoded on the buffer, waiting for approval
+    uint8_t buffer_output_len;
     tx_output_t outputs[10];  // max num of outputs on a call is 7
     tx_output_t decoded_output;
     // tokens is an array of ptrs to save memory since these tokens are already on a global ctx
