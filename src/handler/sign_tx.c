@@ -60,12 +60,12 @@ void read_change_info_v1(buffer_t *cdata) {
         THROW(SW_WRONG_DATA_LENGTH);
     }
 
-    if (G_context.tx_info.change_len > TX_MAX_TOKENS+1) {
+    if (G_context.tx_info.change_len > TX_MAX_TOKENS + 1) {
         // Some token change is duplicated or we have more tokens than allowed
         THROW(SW_WRONG_DATA_LENGTH);
     }
 
-    for(uint8_t i = 0; i < G_context.tx_info.change_len; i++) {
+    for (uint8_t i = 0; i < G_context.tx_info.change_len; i++) {
         change_output_info_t *info = &G_context.tx_info.change_info[i];
 
         // 1 byte for change output index
@@ -379,7 +379,7 @@ bool _decode_elements() {
                 // check if index matches
                 if (output.index == info.index) {
                     // verify change output is going to user's wallet
-                    if(!verify_change(info, output)) {
+                    if (!verify_change(info, output)) {
                         THROW(TX_STATE_ERR);
                     }
                 }

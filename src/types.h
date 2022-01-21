@@ -95,7 +95,7 @@ typedef struct {
     uint8_t sighash_all[32];
 
     uint8_t change_len;
-    change_output_info_t change_info[1 + TX_MAX_TOKENS]; // TX_MAX_TOKENS + HTR
+    change_output_info_t change_info[1 + TX_MAX_TOKENS];  // TX_MAX_TOKENS + HTR
     uint8_t change_output_index;
     bip32_path_t change_bip32_path;
     // tx

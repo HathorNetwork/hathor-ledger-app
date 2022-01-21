@@ -233,13 +233,13 @@ bool check_output_index_state() {
     return false;
 }
 
-void inplace_selection_sort(size_t len, uint8_t *list) {
+void inplace_selection_sort(size_t len, uint8_t* list) {
     size_t i, j, position;
     uint8_t tmp;
-    for (i=0;i<(len-1);i++) {
+    for (i = 0; i < (len - 1); i++) {
         position = i;
-        for (j=i+1;j<len;j++) {
-            if(list[position]>list[j]) position=j;
+        for (j = i + 1; j < len; j++) {
+            if (list[position] > list[j]) position = j;
         }
         if (position != i) {
             tmp = list[position];
@@ -255,13 +255,13 @@ bool skip_change_outputs() {
         return false;
     }
     // confirmed outputs holds the true current output index
-    uint8_t change_indices[1+TX_MAX_TOKENS];
-    for(uint8_t i=0; i<G_context.tx_info.change_len; i++) {
+    uint8_t change_indices[1 + TX_MAX_TOKENS];
+    for (uint8_t i = 0; i < G_context.tx_info.change_len; i++) {
         change_indices[i] = G_context.tx_info.change_info[i].index;
     }
-    inplace_selection_sort((size_t)G_context.tx_info.change_len, change_indices);
+    inplace_selection_sort((size_t) G_context.tx_info.change_len, change_indices);
 
-    for(uint8_t i=0; i<G_context.tx_info.change_len; i++) {
+    for (uint8_t i = 0; i < G_context.tx_info.change_len; i++) {
         if (G_context.tx_info.confirmed_outputs == change_indices[i]) {
             // we are on a change index
             G_context.tx_info.display_index++;
@@ -290,7 +290,7 @@ bool prepare_display_output() {
     if (G_context.tx_info.change_len != 0) {
         // Remove change outputs from total
         total_outputs -= G_context.tx_info.change_len;
-        for(uint8_t i=0; i<G_context.tx_info.change_len; i++) {
+        for (uint8_t i = 0; i < G_context.tx_info.change_len; i++) {
             // Decrease 1 for each change output behind current output
             if (output.index > G_context.tx_info.change_info[i].index) fake_output_index--;
         }
