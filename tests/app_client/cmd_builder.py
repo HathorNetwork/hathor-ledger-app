@@ -4,7 +4,7 @@ import struct
 from typing import Iterator, List, Tuple, Union, cast
 
 from app_client.token import Token
-from app_client.transaction import Transaction
+from app_client.transaction import ChangeInfo, Transaction
 from app_client.utils import bip32_path_from_string
 
 MAX_APDU_LEN: int = 255
@@ -174,9 +174,8 @@ class CommandBuilder:
     def sign_tx_send_data(
         self,
         transaction: Transaction,
-        has_change: bool = False,
-        change_index: int = None,
-        bip32_path: str = None,
+        change_list: List["ChangeInfo"] = [],
+        use_old_protocol: bool = False,
     ) -> Iterator[bytes]:
         """Command builder for INS_SIGN_TX.
 
@@ -184,12 +183,10 @@ class CommandBuilder:
         ----------
         transaction : Transaction
             Representation of the transaction to be signed.
-        has_change: bool
-            Wether the outputs of the transaction have a change output
-        change_index: int
-            The change output index, if it exists
-        bip32_path : str
-            String representation of the change address BIP32 path.
+        change_list: List[ChangeInfo]
+            List of change information, default empty list.
+        use_old_protocol: bool
+            Weather to use the old or new protocol, default True.
 
         Yields
         -------
@@ -198,18 +195,24 @@ class CommandBuilder:
 
         """
         cdata: bytes = None
-        if has_change:
-            bip32_paths: List[bytes] = bip32_path_from_string(bip32_path)
-
+        if use_old_protocol:
+            if len(change_list) > 0:
+                # Old proto only allows 1 change
+                # ignore the rest of the list
+                cdata = change_list[0].old_proto_bytes()
+                print("Old change {}".format(cdata.hex()))
+            else:
+                # No change
+                cdata = b"\x00"
+        else:
             cdata = b"".join(
                 [
-                    (0x80 | len(bip32_paths)).to_bytes(1, byteorder="big"),
-                    change_index.to_bytes(1, byteorder="big"),
-                    *bip32_paths,
+                    b"\x01",  # version byte
+                    len(change_list).to_bytes(1, byteorder="big"),
+                    *[c.serialize() for c in change_list],
                 ]
             )
-        else:
-            cdata = b"\x00"
+            print("change {}".format(cdata.hex()))
         cdata = b"".join([cdata, transaction.serialize()])
         for i, (is_last, chunk) in enumerate(chunkify(cdata, MAX_APDU_LEN)):
             yield self.serialize(

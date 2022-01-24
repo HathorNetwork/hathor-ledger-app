@@ -31,7 +31,7 @@ def test_qa_sign_tx(cmd):
     # sign_tx
     tx = fake_tx(tokens=[])
     print("QA::sign_tx::tx:", str(tx))
-    cmd.sign_tx(tx, has_change=False)
+    cmd.sign_tx(tx)
 
 
 def test_qa_sign_token(cmd):
@@ -67,4 +67,4 @@ def test_qa_sign_tx_with_token(cmd):
     # send_token_data
     cmd.send_token_data(token, sig)
     # sign_tx with token
-    cmd.sign_tx(tx, has_change=False)
+    cmd.sign_tx(tx)

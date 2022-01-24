@@ -26,4 +26,4 @@ def test_sign_tx_with_token(cmd):
     # send_token_data
     cmd.send_token_data_list(tokens, sigs)
     # sign_tx with token
-    cmd.sign_tx(tx, has_change=False)
+    cmd.sign_tx(tx)

@@ -4,7 +4,7 @@ from typing import List, Tuple
 from app_client.cmd_builder import CommandBuilder, InsType
 from app_client.exception import DeviceException
 from app_client.token import Token
-from app_client.transaction import Transaction
+from app_client.transaction import ChangeInfo, Transaction
 from app_client.transport import ApduTransport
 
 
@@ -99,9 +99,8 @@ class Command:
     def sign_tx(
         self,
         transaction: Transaction,
-        has_change: bool = False,
-        change_index: int = None,
-        change_path: str = None,
+        change_list: List["ChangeInfo"] = [],
+        use_old_protocol: bool = False,
     ) -> List[bytes]:
 
         sw: int
@@ -110,9 +109,8 @@ class Command:
         signatures: List[bytes] = []
         for chunk in self.builder.sign_tx_send_data(
             transaction=transaction,
-            has_change=has_change,
-            change_index=change_index,
-            bip32_path=change_path,
+            change_list=change_list,
+            use_old_protocol=use_old_protocol,
         ):
             sw, response = self.transport.exchange_apdu_raw(chunk)
             print("\n", "ledger_resp:", sw, response)

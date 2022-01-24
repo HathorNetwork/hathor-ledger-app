@@ -1,7 +1,7 @@
 from io import BytesIO
 from typing import List, Union
 
-from app_client.utils import read, read_int, read_uint, read_var
+from app_client.utils import bip32_path_from_string, read, read_int, read_uint, read_var
 
 
 class TransactionError(Exception):
@@ -166,3 +166,33 @@ class Transaction:
         sinputs = [str(inp) for inp in self.inputs]
         soutputs = [str(outp) for outp in self.outputs]
         return f"Transaction(tokens={stokens}, inputs={sinputs}, outputs={soutputs})"
+
+
+class ChangeInfo:
+    def __init__(self, output_index: int, path: str) -> None:
+        self.output_index = output_index
+        self.path = path
+
+    @property
+    def bip32_path(self) -> List[bytes]:
+        return bip32_path_from_string(self.path)
+
+    def serialize(self) -> bytes:
+        bip32_path = self.bip32_path
+        return b"".join(
+            [
+                self.output_index.to_bytes(1, byteorder="big"),
+                len(bip32_path).to_bytes(1, byteorder="big"),
+                *bip32_path,
+            ]
+        )
+
+    def old_proto_bytes(self) -> bytes:
+        bip32_path = self.bip32_path
+        return b"".join(
+            [
+                (0x80 | len(bip32_path)).to_bytes(1, byteorder="big"),
+                self.output_index.to_bytes(1, byteorder="big"),
+                *bip32_path,
+            ]
+        )
