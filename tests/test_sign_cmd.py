@@ -8,4 +8,4 @@ def test_sign_tx(cmd):
     print("Outputs:", [str(outp) for outp in tx.outputs])
     print("Tokens:", tx.tokens)
     print("==" * 20)
-    cmd.sign_tx(fake_tx(tokens=[]), has_change=False)
+    cmd.sign_tx(tx)
