@@ -25,13 +25,13 @@
  * Verify that the given output address (pubkey hash) is ours and
  * may be generated from by deriving on the given bip32 path
  **/
-bool verify_change(change_output_info_t info, tx_output_t output) {
+bool verify_change(change_output_info_t *info, tx_output_t output) {
     uint8_t hash[PUBKEY_HASH_LEN] = {0};
     cx_ecfp_public_key_t public_key = {0};
     cx_ecfp_private_key_t private_key = {0};
     uint8_t chain_code[32];
 
-    derive_private_key(&private_key, chain_code, info.path.path, info.path.length);
+    derive_private_key(&private_key, chain_code, info->path.path, info->path.length);
     init_public_key(&private_key, &public_key);
     compress_public_key(public_key.W);
     hash160(public_key.W, 33, hash);
@@ -187,7 +187,6 @@ void read_tx_data(buffer_t *cdata) {
         // if an error occurs reading
         THROW(SW_WRONG_DATA_LENGTH);
     }
-    // TODO: check that no change index is gte to outputs_len?
 }
 
 /**
@@ -375,9 +374,9 @@ bool _decode_elements() {
         if (G_context.tx_info.change_len > 0) {
             // search for an output with this index
             for (uint8_t i = 0; i < G_context.tx_info.change_len; i++) {
-                change_output_info_t info = G_context.tx_info.change_info[i];
+                change_output_info_t *info = &G_context.tx_info.change_info[i];
                 // check if index matches
-                if (output.index == info.index) {
+                if (output.index == info->index) {
                     // verify change output is going to user's wallet
                     if (!verify_change(info, output)) {
                         THROW(TX_STATE_ERR);
