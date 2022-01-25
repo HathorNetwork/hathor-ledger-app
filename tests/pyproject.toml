@@ -13,6 +13,7 @@ Faker = "^10.0.0"
 black = "^21.12b0"
 isort = "^5.10.1"
 flake8 = "^4.0.1"
+hathorlib = "^0.1.1"
 
 [tool.isort]
 profile = "black"
