@@ -10,6 +10,7 @@ The hathor transaction serialized
 
 | Field | Size (bytes) | Description |
 | --- | :---: | --- |
+| `version_byte` | 1 | Version byte for the transaction apdu protocol |
 | `change_info` | var | Bytes representing the existence of a change output and the bip32 path of the change address |
 | `tx_version` | 2 | TX Version, indicates this is a transaction, block, etc. |
 | `num_tokens` | 1 | Number of token UIDs present on the data below |
@@ -18,6 +19,8 @@ The hathor transaction serialized
 | `tokens` | 32\*`num_tokens` | list of Token UIDs |
 | `inputs` | 35\*`num_inputs` | list of Inputs |
 | `outputs` | var | List of Outputs |
+
+Obs: The `version_byte` indicates how the transaction is serialized, especially the change information.
 
 #### Change info
 

@@ -61,9 +61,11 @@
 
 | P1 | Stage | Cdata |
 | --- | --- | --- |
-| 0x00 | data | `change info (var)` \|\|<br> `TX version (2)` \|\|<br> `number of tokens (1)` \|\|<br> `number of inputs (1)` \|\|<br> `number of outputs (1)` \|\|<br> `tokens (32 * num_token)` \|\|<br> `inputs (35 * num_inputs)` \|\|<br> `outputs (var)` |
+| 0x00 | data | `version_byte (1)` \|\|<br> `change info (var)` \|\|<br> `TX version (2)` \|\|<br> `number of tokens (1)` \|\|<br> `number of inputs (1)` \|\|<br> `number of outputs (1)` \|\|<br> `tokens (32 * num_token)` \|\|<br> `inputs (35 * num_inputs)` \|\|<br> `outputs (var)` |
 | 0x01 | sign | `len(bip32_path) (1)` \|\|<br> `bip32_path{1} (4)` \|\|<br>`...` \|\|<br>`bip32_path{n} (4)` |
 | 0x02 | end | - |
+
+Obs: The `version_byte` is unrelated to the transaction version.
 
 Change info:
 
@@ -71,6 +73,8 @@ Change info:
 | --- | --- |
 | `num_change_outputs` | 1 byte unsigned int |
 | `change_output_info(1...n)` | `change_output_index (1)` \|\|<br> `len(change_bip32_path) (1)` \|\|<br> `bip32_path{1} (4)` \|\|<br>`...` \|\|<br>`bip32_path{n} (4)` |
+
+Obs: We also support the old protocol for change information, but it will be deprecated on upcoming versions.
 
 ### Response
 
