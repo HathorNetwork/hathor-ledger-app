@@ -1,7 +1,7 @@
 from typing import Optional
 
-from faker import Faker
 import hathorlib
+from faker import Faker
 
 from app_client.token import Token
 from app_client.transaction import Transaction, TxInput, TxOutput

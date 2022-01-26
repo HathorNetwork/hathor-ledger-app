@@ -1,11 +1,10 @@
+import hashlib
 from io import BytesIO
 from typing import List, Union
-import hashlib
 
+import hathorlib
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
-from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
-import hathorlib
 
 from app_client.utils import bip32_path_from_string, read, read_int, read_uint, read_var
 
@@ -179,8 +178,8 @@ class Transaction:
         return f"Transaction(tokens={stokens}, inputs={sinputs}, outputs={soutputs})"
 
     def verify_signature(self, signature: bytes, public_key_bytes: bytes):
-        """ Verify signature from `self.serialize` that returns the sighash_all bytes
-            and `public_key_bytes` which is the compressed pubkey bytes
+        """Verify signature from `self.serialize` that returns the sighash_all bytes
+        and `public_key_bytes` which is the compressed pubkey bytes
         """
         hash_ctx = hashlib.sha256()
         hash_ctx.update(self.serialize())

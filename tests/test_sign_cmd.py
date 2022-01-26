@@ -1,11 +1,9 @@
-from utils import fake_tx
-from app_client.transaction import TxInput, TxOutput, ChangeInfo
-
-import hathorlib
-from hathorlib.utils import get_address_from_public_key_hash, get_hash160
-from hathorlib.scripts import P2PKH
-
 from faker import Faker
+from hathorlib.scripts import P2PKH
+from hathorlib.utils import get_address_from_public_key_hash, get_hash160
+
+from app_client.transaction import ChangeInfo, TxInput, TxOutput
+from utils import fake_tx
 
 fake = Faker()
 
