@@ -1,5 +1,6 @@
 from io import BytesIO
 from typing import List, Union
+import hashlib
 
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -181,8 +182,10 @@ class Transaction:
         """ Verify signature from `self.serialize` that returns the sighash_all bytes
             and `public_key_bytes` which is the compressed pubkey bytes
         """
+        hash_ctx = hashlib.sha256()
+        hash_ctx.update(self.serialize())
         pubkey = hathorlib.utils.get_public_key_from_bytes_compressed(public_key_bytes)
-        return pubkey.verify(signature, self.serialize(), ec.ECDSA(hashes.SHA256()))
+        return pubkey.verify(signature, hash_ctx.digest(), ec.ECDSA(hashes.SHA256()))
 
 
 class ChangeInfo:

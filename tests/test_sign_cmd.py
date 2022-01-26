@@ -1,7 +1,9 @@
 from utils import fake_tx
-from app_client.transaction import TxInput
+from app_client.transaction import TxInput, TxOutput, ChangeInfo
 
 import hathorlib
+from hathorlib.utils import get_address_from_public_key_hash, get_hash160
+from hathorlib.scripts import P2PKH
 
 from faker import Faker
 
@@ -19,5 +21,39 @@ def test_sign_tx(cmd, public_key_bytes):
 
     for index, signature in enumerate(signatures):
         print("verifying signature {}".format(signature.hex()))
-        print(hathorlib.utils.get_address_b58_from_public_key_bytes(public_key_bytes[index]))
         tx.verify_signature(signature, public_key_bytes[index])
+
+
+def test_sign_tx_change_old_protocol(cmd, public_key_bytes):
+    outputs = [
+        TxOutput(
+            fake.pyint(1),
+            P2PKH.create_output_script(
+                get_address_from_public_key_hash(get_hash160(public_key_bytes[x]))
+            ),
+        )
+        for x in range(10)
+    ]
+    change_index = fake.pyint(0, 9)
+    change_list = [ChangeInfo(change_index, "m/44'/280'/0'/0/{}".format(change_index))]
+    tx = fake_tx(outputs=outputs, tokens=[])
+    cmd.sign_tx(tx, change_list=change_list, use_old_protocol=True)
+
+
+def test_sign_tx_change_protocol_v1(cmd, public_key_bytes):
+    outputs = [
+        TxOutput(
+            fake.pyint(1),
+            P2PKH.create_output_script(
+                get_address_from_public_key_hash(get_hash160(public_key_bytes[x]))
+            ),
+        )
+        for x in range(10)
+    ]
+    change_indices = [fake.pyint(0, 9) for x in range(5)]
+    change_list = [
+        ChangeInfo(change_index, "m/44'/280'/0'/0/{}".format(change_index))
+        for change_index in change_indices
+    ]
+    tx = fake_tx(outputs=outputs, tokens=[])
+    cmd.sign_tx(tx, change_list=change_list, use_old_protocol=False)
