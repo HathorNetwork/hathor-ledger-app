@@ -119,7 +119,7 @@ class Command:
             if sw != 0x9000:
                 raise DeviceException(error_code=sw, ins=InsType.INS_SIGN_TX)
 
-        time.sleep(1)
+        time.sleep(2)
         # ask for signatures
         for chunk in self.builder.sign_tx_signatures(transaction):
             sw, response = self.transport.exchange_apdu_raw(chunk)
