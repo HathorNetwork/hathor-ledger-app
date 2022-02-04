@@ -1,5 +1,5 @@
-import time
 import struct
+import time
 from typing import List, Tuple
 
 from app_client.cmd_builder import CommandBuilder, InsType
