@@ -1,5 +1,10 @@
+import hashlib
 from io import BytesIO
 from typing import List, Union
+
+import hathorlib
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import ec
 
 from app_client.utils import bip32_path_from_string, read, read_int, read_uint, read_var
 
@@ -107,11 +112,15 @@ class Transaction:
         self.tokens = tokens
         self.inputs = inputs
         self.outputs = outputs
+        self.sighash_all = None
 
     def serialize(self) -> bytes:
         """This serialize returns the number of complete outputs on each chunk
         this is imperative for testing, we need to know how many outputs to confirm
         """
+        if self.sighash_all is not None:
+            return self.sighash_all
+
         cdata = b"".join(
             [
                 self.tx_version.to_bytes(2, byteorder="big"),
@@ -132,7 +141,8 @@ class Transaction:
             output_bytes = tx_output.serialize()
             cdata = b"".join([cdata, output_bytes])
 
-        return cdata
+        self.sighash_all = cdata
+        return self.sighash_all
 
     @classmethod
     def from_bytes(cls, hexa: Union[bytes, BytesIO]):
@@ -166,6 +176,15 @@ class Transaction:
         sinputs = [str(inp) for inp in self.inputs]
         soutputs = [str(outp) for outp in self.outputs]
         return f"Transaction(tokens={stokens}, inputs={sinputs}, outputs={soutputs})"
+
+    def verify_signature(self, signature: bytes, public_key_bytes: bytes):
+        """Verify signature from `self.serialize` that returns the sighash_all bytes
+        and `public_key_bytes` which is the compressed pubkey bytes
+        """
+        hash_ctx = hashlib.sha256()
+        hash_ctx.update(self.serialize())
+        pubkey = hathorlib.utils.get_public_key_from_bytes_compressed(public_key_bytes)
+        return pubkey.verify(signature, hash_ctx.digest(), ec.ECDSA(hashes.SHA256()))
 
 
 class ChangeInfo:
