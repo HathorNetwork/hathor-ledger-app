@@ -30,9 +30,9 @@ def test_sign_tx_change_old_protocol(cmd, public_key_bytes):
                 get_address_from_public_key_hash(get_hash160(public_key_bytes[x]))
             ),
         )
-        for x in range(10)
+        for x in range(5)
     ]
-    change_index = fake.pyint(0, 9)
+    change_index = fake.pyint(0, 5)
     change_list = [ChangeInfo(change_index, "m/44'/280'/0'/0/{}".format(change_index))]
     tx = fake_tx(outputs=outputs, tokens=[])
     cmd.sign_tx(tx, change_list=change_list, use_old_protocol=True)
@@ -46,9 +46,9 @@ def test_sign_tx_change_protocol_v1(cmd, public_key_bytes):
                 get_address_from_public_key_hash(get_hash160(public_key_bytes[x]))
             ),
         )
-        for x in range(10)
+        for x in range(5)
     ]
-    change_indices = [fake.pyint(0, 9) for x in range(5)]
+    change_indices = [fake.pyint(0, 5) for x in range(5)]
     change_list = [
         ChangeInfo(change_index, "m/44'/280'/0'/0/{}".format(change_index))
         for change_index in change_indices
