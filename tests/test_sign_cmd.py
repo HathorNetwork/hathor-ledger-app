@@ -24,6 +24,7 @@ def test_sign_tx(cmd, public_key_bytes):
         tx.verify_signature(signature, public_key_bytes[index])
 
 
+@pytest.mark.skip("speculos: hanging tests")
 def test_sign_tx_change_old_protocol(cmd, public_key_bytes):
     outputs = [
         TxOutput(
@@ -43,6 +44,7 @@ def test_sign_tx_change_old_protocol(cmd, public_key_bytes):
         pytest.skip("speculos automation failed, not the test")
 
 
+@pytest.mark.skip("speculos: hanging tests")
 def test_sign_tx_change_protocol_v1(cmd, public_key_bytes):
     outputs = [
         TxOutput(
