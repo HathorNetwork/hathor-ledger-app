@@ -1,5 +1,5 @@
 [discord.logo]: images/logos/discord.png (Discord)
-[email.logo]: images/logos/email.png (Discord)
+[email.logo]: images/logos/email.png (Email)
 [telegram.logo]: images/logos/telegram.png (Telegram)
 
 [email.link]: mailto:contact@hathor.network
@@ -140,6 +140,4 @@ Observations:
 
 ## Contact Info
 
-- [![Email][email.logo] Email][email.link]
-- [![Discord][discord.logo] Discord][discord.link]
-- [![Telegram][telegram.logo] Telegram][telegram.link]
+[![Email][email.logo]][email.link]&emsp;[![Discord][discord.logo]][discord.link]&emsp;[![Telegram][telegram.logo]][telegram.link]
