@@ -94,7 +94,7 @@ On the `data` and `sign` stages each call receives a `SW_OK` when processing is 
 | --- | --- | --- | --- | --- | --- |
 | 0xE0 | 0x07 | 0x00 | 0x00 | 0x00-0x46 | `version (1)` \|\|<br> `uid (32)` \|\|<br>`symbol_len (1)` \|\|<br>`symbol (symbol_len)` \|\|<br>`name_len (1)` \|\|<br>`name (name_len)` |
 
-- `symbol` and `name` are UTF-8 encoded but due to a display limitation on ledger we only allow ascii printable characters, making the limits 5 and 30 bytes respectively.
+- `symbol` and `name` are UTF-8 encoded but due to a display limitation on Ledger we only allow ascii printable characters, making the limits 5 and 30 bytes respectively.
 - `uid` is the transaction id that created this token.
 - `version` is always 1 (0x01).
     - This is a way to accomodate for future tokens that may not use the structure described above.
