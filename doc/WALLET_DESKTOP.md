@@ -1,3 +1,11 @@
+[discord.logo]: images/logos/discord.png (Discord)
+[email.logo]: images/logos/email.png (Discord)
+[telegram.logo]: images/logos/telegram.png (Telegram)
+
+[email.link]: mailto:contact@hathor.network
+[discord.link]: https://discord.gg/aWukZZX
+[telegram.link]: https://t.me/HathorOfficial
+
 # Tutorial Wallet Desktop with Ledger
 
 ## Overview
@@ -7,7 +15,6 @@ We will teach how to connect a Ledger device device with Hathor wallet and how t
 ### Table of contents
 
 - [Introduction](#introduction)
-- [Installation](#installation)
 - [How to connect the wallet with your Ledger](#connect)
 - [View transaction history](#view-transaction-history)
 - [View transaction info](#view-transaction-info)
@@ -31,17 +38,7 @@ The private key is never loaded on your computer and all signatures can only be 
 - A Ledger Nano S or Nano X with Hathor's app installed.
 - The Hathor Desktop Wallet installed on your PC. (Mobile wallet is still not supported)
 
-## Installation
-
-Hathor's Ledger app can be installed with Ledger Live.
-
-1. On the left menu click on the "Manager" option.
-1. On the device you should click with both buttons on the "Allow Ledger manager" screen.
-1. On your PC you have to search for "Hathor" and click on "Install".
-    - If the "Install" button is disabled it is possible you do not have enough storage, you should uninstall another app to make room for Hathor's app.
-    - If you cannot find the app, try clicking on settings (gear icon on top right) then "Experimental features" and enable "Developer mode".
-1. Once the app is installed is can be used with Hathor's Desktop wallet
-    - Make sure Ledger Live is closed when using the wallet, the connection to the device can be unstable if both softwares are open.
+[Installation instructions](https://medium.com/hathor-network/hathor-is-available-on-ledger-wallet-31cb1613b060) with Ledger Live.
 
 ## Connect
 
@@ -119,7 +116,7 @@ You can add up to 255 outputs for any transaction.
 Remember: The sum of the outputs values must be equal or less than your available balance.
 
 The wallet can automatically select the inputs for the transaction.
-Optionally, you can select them yourself, in wich case you need to provide for each input:
+Optionally, you can select them yourself, in which case you need to provide for each input:
 
 - Transaction id
 - Output index (which output from transaction id will be spent)
@@ -140,3 +137,9 @@ The wallet will get the signature information and send the transaction, after wh
 Observations:
 - Only HTR (Hathor native token) is supported with the Ledger app.
 - Time lock is disabled for transactions with Ledger.
+
+## Contact Info
+
+- [![Email][email.logo] Email][email.link]
+- [![Discord][discord.logo] Discord][discord.link]
+- [![Telegram][telegram.logo] Telegram][telegram.link]
