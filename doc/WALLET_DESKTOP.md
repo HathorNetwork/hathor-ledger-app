@@ -1,11 +1,3 @@
-[discord.logo]: images/logos/discord.png (Discord)
-[email.logo]: images/logos/email.png (Email)
-[telegram.logo]: images/logos/telegram.png (Telegram)
-
-[email.link]: mailto:contact@hathor.network
-[discord.link]: https://discord.gg/aWukZZX
-[telegram.link]: https://t.me/HathorOfficial
-
 # Tutorial Wallet Desktop with Ledger
 
 ## Overview
@@ -20,6 +12,7 @@ We will teach how to connect a Ledger device device with Hathor wallet and how t
 - [View transaction info](#view-transaction-info)
 - [Receive HTR tokens](#receive-htr-tokens)
 - [Send HTR tokens](#send-htr-tokens)
+- [Contact Info](#contact-info)
 
 ## Introduction
 
@@ -140,4 +133,6 @@ Observations:
 
 ## Contact Info
 
-[![Email][email.logo]][email.link]&emsp;[![Discord][discord.logo]][discord.link]&emsp;[![Telegram][telegram.logo]][telegram.link]
+- Email: [contact@hathor.network](mailto:contact@hathor.network)
+- Discord: https://discord.gg/aWukZZX
+- Telegram: https://t.me/HathorOfficial
