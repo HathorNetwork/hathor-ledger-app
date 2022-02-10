@@ -80,7 +80,7 @@ Here you can check any information pertaining to the transaction.
 
 ![Show address](images/04-show-full-address.png)
 
-Your wallet is [BIP44](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki) compliant, so it is composed of many addresses.
+Hathor wallet is [BIP44](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki) compliant, so it is composed of many addresses.
 If you want to receive tokens you need an address:
 
 - On the `Wallet` main screen upper right corner there is a box with the current address
@@ -127,9 +127,7 @@ If confirmed, you will need to wait for the signing process to be done.
 
 The wallet will get the signature information and send the transaction, after which you will be directed to the `Wallet` screen.
 
-Observations:
-- Only HTR (Hathor native token) is supported with the Ledger app.
-- Time lock is disabled for transactions with Ledger.
+OBS: Time lock is disabled for transactions with Ledger.
 
 ## Contact Info
 
