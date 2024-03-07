@@ -94,6 +94,7 @@ def cmd(transport):
 
     yield command
 
+
 @pytest.fixture(scope="session", autouse=True)
 def skip_pending_review_screen(server):
     # This is meant to run before all tests
@@ -104,6 +105,7 @@ def skip_pending_review_screen(server):
         urljoin(server, "/button/both"),
         json={"action": "press-and-release"},
     )
+
 
 @pytest.fixture(scope="session")
 def public_key_bytes():
