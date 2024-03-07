@@ -118,7 +118,7 @@ int apdu_dispatcher(const command_t *cmd) {
             buf.size = cmd->lc;
             buf.offset = 0;
 
-            return handler_reset_token_signatures(&buf);
+            return handler_reset_token_signatures();
 
         default:
             return io_send_sw(SW_INS_NOT_SUPPORTED);

@@ -8,8 +8,6 @@
 #include "hathor.h"
 #include "constants.h"
 
-// #include "transaction/types.h"
-
 // Path prefix of 44'/280'
 const uint32_t htr_bip44[] = {44 | 0x80000000, HATHOR_BIP44_CODE | 0x80000000};
 

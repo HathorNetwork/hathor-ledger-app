@@ -339,7 +339,6 @@ bool _decode_elements() {
         // Safely discard data
         G_context.tx_info.remaining_inputs--;
         G_context.tx_info.buffer_len -= TX_INPUT_LEN;
-        // G_context.tx_info.elem_type = ELEM_INPUT;
         memmove(G_context.tx_info.buffer,
                 G_context.tx_info.buffer + TX_INPUT_LEN,
                 G_context.tx_info.buffer_len);

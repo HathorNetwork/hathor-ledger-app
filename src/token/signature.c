@@ -9,7 +9,7 @@
 #include "cx.h"
 
 size_t init_token_signature_message(uint8_t *secret, token_t *token, uint8_t *out) {
-    // message == secret + uid + symbol + name + version + salt
+    // message == secret + uid + symbol + name + version
     size_t offset = 0;
     // add secret
     memmove(out, secret, SECRET_LEN);

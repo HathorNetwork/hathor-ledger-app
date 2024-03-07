@@ -142,7 +142,6 @@ void format_value(uint64_t value, char *out) {
     char buf[35];
     char *p;
 
-    // utoa(tmp, buf);
     format_u64(buf, sizeof(buf), tmp);
     // 'c' is used here to control when a comma should be added
     c = 2 - strlen(buf) % 3;
@@ -192,21 +191,3 @@ void itoa(int value, char *result, int base) {
         *ptr1++ = tmp_char;
     }
 }
-
-// void utoa(uint64_t value, char *s) {
-//     // small optimization
-//     if (value < 10) {
-//         s[0] = '0' + (uint8_t)value;
-//         s[1] = 0;
-//         return;
-//     }
-//     uint64_t tmp = value;
-//     uint8_t idx = 0;
-//     while (tmp > 0) {
-//         s[idx] = (tmp % 10) + '0';
-//         tmp = tmp / 10;
-//         idx++;
-//     }
-//     s[idx] = 0;
-//     strrev(s);
-// }

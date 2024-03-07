@@ -473,7 +473,7 @@ void ui_confirm_reset_token_signatures(bool choice) {
     ui_menu_main();
 }
 
-/* FLOW to display confirm address:
+/* FLOW to display confirm reset token signatures:
  *  #1 screen: eye icon + "Reset token signatures"
  *  #2 screen: warning message
  *  #3 screen: approve button

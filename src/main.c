@@ -60,7 +60,6 @@ void app_main() {
                        cmd.p1,
                        cmd.p2,
                        cmd.lc,
-                       cmd.lc,
                        cmd.data);
 
                 // Dispatch structured APDU command to handler
