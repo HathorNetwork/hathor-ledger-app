@@ -1,6 +1,6 @@
 #include <stddef.h>  // size_t
 #include <stdint.h>  // uint*_t
-#include <string.h>  // memmove
+#include <string.h>  // memmove, explicit_bzero
 
 #include "send_response.h"
 #include "../constants.h"
@@ -31,6 +31,9 @@ int helper_send_token_data_signature() {
 
     get_secret(secret);
     sign_token(secret, &G_context.token, sign);
+
+    // clear secret
+    explicit_bzero(secret, SECRET_LEN);
 
     // return the signature
     return io_send_response(&(const buffer_t){.ptr = sign, .size = 32, .offset = 0}, SW_OK);

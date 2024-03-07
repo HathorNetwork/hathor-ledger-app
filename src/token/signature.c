@@ -1,6 +1,6 @@
 #include "signature.h"
 
-#include <string.h>  // memmove
+#include <string.h>  // memmove, explicit_bzero
 
 #include "token_parser.h"
 #include "../types.h"
@@ -53,5 +53,10 @@ bool check_token_signature_from_apdu(buffer_t *cdata, token_t *token) {
     // extract signature from cdata
     if (!buffer_read_bytes(cdata, signature, 32, 32)) return false;
     get_secret(secret);
-    return verify_token_signature(secret, token, signature);
+    bool verified = verify_token_signature(secret, token, signature);
+
+    // clear secret
+    explicit_bzero(secret, SECRET_LEN);
+
+    return verified;
 }
