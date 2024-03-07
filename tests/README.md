@@ -1,10 +1,14 @@
 # End-to-end tests
 
-These tests are implemented in Python and can be executed either using the [Speculos](https://github.com/LedgerHQ/speculos) emulator or a Ledger Nano S/X.
-Python dependencies are listed in [requirements.txt](requirements.txt), install them using [pip](https://pypi.org/project/pip/)
+The tests are implemented in python and need a Speculos emulator to run.
+Python dependencies are listed in [pyproject.toml](pyproject.toml), install them using [poetry](https://github.com/python-poetry/poetry)
+
+Some basic commands are defined on the Makefile.
 
 ```
-pip install -r requirements.txt
+poetry install
+# or
+make install
 ```
 
 ### Launch with Speculos
@@ -18,19 +22,7 @@ First start your application with Speculos
 then in the `tests` folder run
 
 ```
-pytest
-```
-
-### Launch with your Nano S/X
-
-To run the tests on your Ledger Nano S/X you also need to install an optional dependency
-
-```
-pip install ledgercomm[hid]
-```
-
-Be sure to have you device connected through USB (without any other software interacting with it) and run
-
-```
-pytest --hid
+poetry run pytest
+# or
+make test
 ```

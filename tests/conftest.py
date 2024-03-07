@@ -24,8 +24,10 @@ Addresses: m/44'/280'/0'/0/0-9
 """
 
 from pathlib import Path
+from urllib.parse import urljoin
 
 import pytest
+import requests
 
 from app_client.automation import CommandAutomation, FakeAutomation
 from app_client.cmd import Command
@@ -92,6 +94,16 @@ def cmd(transport):
 
     yield command
 
+@pytest.fixture(scope="session", autouse=True)
+def skip_pending_review_screen(server):
+    # This is meant to run before all tests
+    # It will press both buttons once to skip the Pending Ledger Review screen
+    # If the screen does not appear it will press both buttons on the home screen
+    # Which is a noop
+    requests.post(
+        urljoin(server, "/button/both"),
+        json={"action": "press-and-release"},
+    )
 
 @pytest.fixture(scope="session")
 def public_key_bytes():
