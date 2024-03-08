@@ -68,19 +68,19 @@ void derive_private_key(cx_ecfp_private_key_t *private_key,
     uint8_t raw_private_key[64] = {0};
     // derive the seed with 44'/280'/$(bip32_path)
     cx_err_t err = os_derive_bip32_no_throw(CX_CURVE_256K1,
-                               bip32_path,
-                               bip32_path_len,
-                               raw_private_key,
-                               chain_code);
+                                            bip32_path,
+                                            bip32_path_len,
+                                            raw_private_key,
+                                            chain_code);
     if (err != CX_OK) {
         explicit_bzero(&raw_private_key, sizeof(raw_private_key));
         THROW(err);
     }
     // new private_key from raw
     err = cx_ecfp_init_private_key_no_throw(CX_CURVE_256K1,
-                             raw_private_key,
-                             sizeof(raw_private_key),
-                             private_key);
+                                            raw_private_key,
+                                            sizeof(raw_private_key),
+                                            private_key);
 
     explicit_bzero(&raw_private_key, sizeof(raw_private_key));
     if (err != CX_OK) {

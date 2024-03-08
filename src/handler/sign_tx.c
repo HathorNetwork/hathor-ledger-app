@@ -197,11 +197,11 @@ void sighash_all_hash(buffer_t *cdata) {
     // cx_hash returns the size of the hash after adding the data, we can safely ignore it
 
     CX_THROW(cx_hash_no_throw(&G_context.tx_info.sha256.header,  // hash context pointer
-            0,                                 // mode (supports: CX_LAST)
-            cdata->ptr + cdata->offset,        // Input data to add to current hash
-            cdata->size - cdata->offset,       // Length of input data
-            NULL,
-            0));  // output (if flag CX_LAST was set)
+                              0,                                 // mode (supports: CX_LAST)
+                              cdata->ptr + cdata->offset,   // Input data to add to current hash
+                              cdata->size - cdata->offset,  // Length of input data
+                              NULL,
+                              0));  // output (if flag CX_LAST was set)
 }
 
 /**
@@ -230,19 +230,19 @@ bool sign_tx_with_key() {
     if (G_context.tx_info.sighash_all[0] == '\0') {
         // finish sha256 from data
         CX_THROW(cx_hash_no_throw(&G_context.tx_info.sha256.header,
-                CX_LAST,
-                G_context.tx_info.sighash_all,
-                0,
-                G_context.tx_info.sighash_all,
-                32));
+                                  CX_LAST,
+                                  G_context.tx_info.sighash_all,
+                                  0,
+                                  G_context.tx_info.sighash_all,
+                                  32));
         // now get second sha256
         cx_sha256_init(&G_context.tx_info.sha256);
         CX_THROW(cx_hash_no_throw(&G_context.tx_info.sha256.header,
-                CX_LAST,
-                G_context.tx_info.sighash_all,
-                32,
-                G_context.tx_info.sighash_all,
-                32));
+                                  CX_LAST,
+                                  G_context.tx_info.sighash_all,
+                                  32,
+                                  G_context.tx_info.sighash_all,
+                                  32));
     }
 
     uint8_t out[256] = {0};
