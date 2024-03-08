@@ -21,14 +21,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        language: [ 'c-cpp' ]
         include:
           - SDK: "$NANOS_SDK"
             artifact: hathor-app-nanoS
           - SDK: "$NANOX_SDK"
             artifact: hathor-app-nanoX
-          # - SDK: "$NANOSP_SDK"
-          #   artifact: hathor-app-nanoSP
-        language: [ 'c-cpp' ]
+          - SDK: "$NANOSP_SDK"
+            artifact: hathor-app-nanoSP
     container:
       image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder-legacy:latest
 
