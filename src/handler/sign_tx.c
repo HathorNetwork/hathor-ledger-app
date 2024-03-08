@@ -196,12 +196,12 @@ void read_tx_data(buffer_t *cdata) {
 void sighash_all_hash(buffer_t *cdata) {
     // cx_hash returns the size of the hash after adding the data, we can safely ignore it
 
-    cx_hash(&G_context.tx_info.sha256.header,  // hash context pointer
+    CX_THROW(cx_hash_no_throw(&G_context.tx_info.sha256.header,  // hash context pointer
             0,                                 // mode (supports: CX_LAST)
             cdata->ptr + cdata->offset,        // Input data to add to current hash
             cdata->size - cdata->offset,       // Length of input data
             NULL,
-            0);  // output (if flag CX_LAST was set)
+            0));  // output (if flag CX_LAST was set)
 }
 
 /**
@@ -229,31 +229,32 @@ bool sign_tx_with_key() {
 
     if (G_context.tx_info.sighash_all[0] == '\0') {
         // finish sha256 from data
-        cx_hash(&G_context.tx_info.sha256.header,
+        CX_THROW(cx_hash_no_throw(&G_context.tx_info.sha256.header,
                 CX_LAST,
                 G_context.tx_info.sighash_all,
                 0,
                 G_context.tx_info.sighash_all,
-                32);
+                32));
         // now get second sha256
         cx_sha256_init(&G_context.tx_info.sha256);
-        cx_hash(&G_context.tx_info.sha256.header,
+        CX_THROW(cx_hash_no_throw(&G_context.tx_info.sha256.header,
                 CX_LAST,
                 G_context.tx_info.sighash_all,
                 32,
                 G_context.tx_info.sighash_all,
-                32);
+                32));
     }
 
     uint8_t out[256] = {0};
-    size_t sig_size = cx_ecdsa_sign(&private_key,
+    size_t sig_size = 256;
+    CX_THROW(cx_ecdsa_sign_no_throw(&private_key,
                                     CX_LAST | CX_RND_RFC6979,
                                     CX_SHA256,
                                     G_context.tx_info.sighash_all,
                                     32,
                                     out,
-                                    256,
-                                    NULL);
+                                    &sig_size,
+                                    NULL));
 
     explicit_bzero(&private_key, sizeof(private_key));
     explicit_bzero(&public_key, sizeof(public_key));

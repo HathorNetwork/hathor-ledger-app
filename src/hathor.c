@@ -17,10 +17,10 @@ void sha256d(uint8_t *in, size_t inlen, uint8_t *out) {
 
     // sha256 of input to `buffer`
     cx_sha256_init(&hash);
-    cx_hash(&hash.header, CX_LAST, in, inlen, buffer, 32);
+    CX_THROW(cx_hash_no_throw(&hash.header, CX_LAST, in, inlen, buffer, 32));
     // sha256 of buffer to `out`
     cx_sha256_init(&hash);
-    cx_hash(&hash.header, CX_LAST, buffer, 32, out, 32);
+    CX_THROW(cx_hash_no_throw(&hash.header, CX_LAST, buffer, 32, out, 32));
 }
 
 void hash160(uint8_t *in, size_t inlen, uint8_t *out) {
@@ -31,9 +31,9 @@ void hash160(uint8_t *in, size_t inlen, uint8_t *out) {
     uint8_t buffer[32] = {0};
 
     cx_sha256_init(&u.shasha);
-    cx_hash(&u.shasha.header, CX_LAST, in, inlen, buffer, 32);
+    CX_THROW(cx_hash_no_throw(&u.shasha.header, CX_LAST, in, inlen, buffer, 32));
     cx_ripemd160_init(&u.riprip);
-    cx_hash(&u.riprip.header, CX_LAST, buffer, 32, out, 20);
+    CX_THROW(cx_hash_no_throw(&u.riprip.header, CX_LAST, buffer, 32, out, 20));
 }
 
 void compress_public_key(uint8_t *value) {
@@ -65,33 +65,33 @@ void derive_private_key(cx_ecfp_private_key_t *private_key,
                         uint8_t chain_code[static 32],
                         const uint32_t *bip32_path,
                         uint8_t bip32_path_len) {
-    uint8_t raw_private_key[32] = {0};
-
-    BEGIN_TRY {
-        TRY {
-            // derive the seed with 44'/280'/$(bip32_path)
-            os_perso_derive_node_bip32(CX_CURVE_256K1,
-                                       bip32_path,
-                                       bip32_path_len,
-                                       raw_private_key,
-                                       chain_code);
-            // new private_key from raw
-            cx_ecfp_init_private_key(CX_CURVE_256K1,
-                                     raw_private_key,
-                                     sizeof(raw_private_key),
-                                     private_key);
-        }
-        CATCH_OTHER(e) {
-            THROW(e);
-        }
-        FINALLY {
-            explicit_bzero(&raw_private_key, sizeof(raw_private_key));
-        }
+    uint8_t raw_private_key[64] = {0};
+    // derive the seed with 44'/280'/$(bip32_path)
+    cx_err_t err = os_derive_bip32_no_throw(CX_CURVE_256K1,
+                               bip32_path,
+                               bip32_path_len,
+                               raw_private_key,
+                               chain_code);
+    if (err != CX_OK) {
+        explicit_bzero(&raw_private_key, sizeof(raw_private_key));
+        THROW(err);
     }
-    END_TRY;
+    // new private_key from raw
+    err = cx_ecfp_init_private_key_no_throw(CX_CURVE_256K1,
+                             raw_private_key,
+                             sizeof(raw_private_key),
+                             private_key);
+
+    explicit_bzero(&raw_private_key, sizeof(raw_private_key));
+    if (err != CX_OK) {
+        THROW(err);
+    }
 }
 
 void init_public_key(cx_ecfp_private_key_t *private_key, cx_ecfp_public_key_t *public_key) {
     // generate corresponding public key
-    cx_ecfp_generate_pair(CX_CURVE_256K1, public_key, private_key, 1);
+    cx_err_t err = cx_ecfp_generate_pair_no_throw(CX_CURVE_256K1, public_key, private_key, 1);
+    if (err != CX_OK) {
+        THROW(err);
+    }
 }
