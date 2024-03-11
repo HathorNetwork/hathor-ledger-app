@@ -65,19 +65,26 @@ void derive_private_key(cx_ecfp_private_key_t *private_key,
                         uint8_t chain_code[static 32],
                         const uint32_t *bip32_path,
                         uint8_t bip32_path_len) {
-  cx_err_t error = CX_OK;
-  uint8_t raw_privkey[65];
+    cx_err_t error = CX_OK;
+    uint8_t raw_privkey[65];
 
-  CX_CHECK(os_derive_bip32_with_seed_no_throw(HDW_NORMAL, CX_CURVE_256K1, bip32_path, bip32_path_len, raw_privkey, chain_code, NULL, 0));
+    CX_CHECK(os_derive_bip32_with_seed_no_throw(HDW_NORMAL,
+                                                CX_CURVE_256K1,
+                                                bip32_path,
+                                                bip32_path_len,
+                                                raw_privkey,
+                                                chain_code,
+                                                NULL,
+                                                0));
 
-  CX_CHECK(cx_ecfp_init_private_key_no_throw(CX_CURVE_256K1, raw_privkey, 32, private_key));
+    CX_CHECK(cx_ecfp_init_private_key_no_throw(CX_CURVE_256K1, raw_privkey, 32, private_key));
 
-  end:
-  explicit_bzero(raw_privkey, sizeof(raw_privkey));
-  if (error != CX_OK) {
-    explicit_bzero(private_key, sizeof(cx_ecfp_256_private_key_t));
-    THROW(error);
-  }
+end:
+    explicit_bzero(raw_privkey, sizeof(raw_privkey));
+    if (error != CX_OK) {
+        explicit_bzero(private_key, sizeof(cx_ecfp_256_private_key_t));
+        THROW(error);
+    }
 }
 
 void init_public_key(cx_ecfp_private_key_t *private_key, cx_ecfp_public_key_t *public_key) {
