@@ -7,6 +7,9 @@
 #include "../offsets.h"
 
 bool apdu_parser(command_t *cmd, uint8_t *buf, size_t buf_len) {
+    if (cmd == NULL || buf == NULL) {
+        return false;
+    }
     // Check minimum length and Lc field of APDU command
     if (buf_len < OFFSET_CDATA || buf_len - OFFSET_CDATA != buf[OFFSET_LC]) {
         return false;

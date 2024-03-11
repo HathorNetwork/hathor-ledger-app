@@ -4,6 +4,9 @@
 #include "os.h"
 
 void get_secret(uint8_t* secret) {
+    if (secret == NULL) {
+        return;
+    }
     for (uint8_t i = 0; i < SECRET_LEN; i++) {
         if (*(N_storage.secret + i) != 0) {
             memmove(secret, (const uint8_t*) N_storage.secret, SECRET_LEN);

@@ -15,6 +15,11 @@ void sha256d(uint8_t *in, size_t inlen, uint8_t *out) {
     cx_sha256_t hash;
     uint8_t buffer[32];
 
+    // Check for NULL pointers
+    if ((in == NULL) || (out == NULL)) {
+        return;
+    }
+
     // sha256 of input to `buffer`
     cx_sha256_init(&hash);
     CX_THROW(cx_hash_no_throw(&hash.header, CX_LAST, in, inlen, buffer, 32));
@@ -29,6 +34,10 @@ void hash160(uint8_t *in, size_t inlen, uint8_t *out) {
         cx_ripemd160_t riprip;
     } u;
     uint8_t buffer[32] = {0};
+
+    if ((in == NULL) || (out == NULL)) {
+        return;
+    }
 
     cx_sha256_init(&u.shasha);
     CX_THROW(cx_hash_no_throw(&u.shasha.header, CX_LAST, in, inlen, buffer, 32));
@@ -53,6 +62,10 @@ void address_from_pubkey_hash(const uint8_t *public_key_hash, uint8_t *out) {
 
 void address_from_pubkey(cx_ecfp_public_key_t *public_key, uint8_t *out) {
     uint8_t buffer[PUBKEY_HASH_LEN] = {0};
+
+    if ((public_key == NULL) || (out == NULL)) {
+        return;
+    }
     // compress_public_key
     compress_public_key(public_key->W);
     // hash160

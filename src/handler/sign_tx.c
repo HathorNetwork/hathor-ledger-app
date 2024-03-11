@@ -31,6 +31,10 @@ bool verify_change(change_output_info_t *info, tx_output_t output) {
     cx_ecfp_private_key_t private_key = {0};
     uint8_t chain_code[32];
 
+    if (info == NULL) {
+        return false;
+    }
+
     derive_private_key(&private_key, chain_code, info->path.path, info->path.length);
     init_public_key(&private_key, &public_key);
     compress_public_key(public_key.W);

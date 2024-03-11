@@ -5,10 +5,16 @@
 #include "bip32.h"
 
 bool buffer_can_read(const buffer_t *buffer, size_t n) {
+    if (buffer == NULL) {
+      return false;
+    }
     return buffer->size - buffer->offset >= n;
 }
 
 bool buffer_seek_set(buffer_t *buffer, size_t offset) {
+    if (buffer == NULL) {
+      return false;
+    }
     if (offset > buffer->size) {
         return false;
     }
@@ -19,6 +25,9 @@ bool buffer_seek_set(buffer_t *buffer, size_t offset) {
 }
 
 bool buffer_seek_cur(buffer_t *buffer, size_t offset) {
+    if (buffer == NULL) {
+      return false;
+    }
     if (buffer->offset + offset < buffer->offset ||  // overflow
         buffer->offset + offset > buffer->size) {    // exceed buffer size
         return false;
@@ -30,6 +39,9 @@ bool buffer_seek_cur(buffer_t *buffer, size_t offset) {
 }
 
 bool buffer_seek_end(buffer_t *buffer, size_t offset) {
+    if (buffer == NULL) {
+      return false;
+    }
     if (offset > buffer->size) {
         return false;
     }
@@ -97,6 +109,9 @@ bool buffer_read_u64(buffer_t *buffer, uint64_t *value, endianness_t endianness)
 }
 
 bool buffer_read_bip32_path(buffer_t *buffer, bip32_path_t *out) {
+    if (buffer == NULL || out == NULL) {
+      return false;
+    }
     if (!bip32_path_read(buffer->ptr + buffer->offset, buffer->size - buffer->offset, out)) {
         return false;
     }
@@ -108,6 +123,9 @@ bool buffer_read_bip32_path(buffer_t *buffer, bip32_path_t *out) {
 }
 
 bool buffer_read_bytes(buffer_t *buffer, uint8_t *out, size_t out_len, size_t len) {
+    if (buffer == NULL || out == NULL) {
+      return false;
+    }
     if (len > buffer->size - buffer->offset || len > out_len) {
         return false;
     }
@@ -120,6 +138,9 @@ bool buffer_read_bytes(buffer_t *buffer, uint8_t *out, size_t out_len, size_t le
 }
 
 bool buffer_copy(const buffer_t *buffer, uint8_t *out, size_t out_len) {
+    if (buffer == NULL || out == NULL) {
+      return false;
+    }
     if (buffer->size - buffer->offset > out_len) {
         return false;
     }

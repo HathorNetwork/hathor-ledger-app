@@ -33,6 +33,10 @@ int base58_decode(const char *in, size_t in_len, uint8_t *out, size_t out_len) {
     uint8_t start_at;
     uint8_t zero_count = 0;
 
+    if (in == NULL || out == NULL) {
+        return -1;
+    }
+
     if (in_len > MAX_DEC_INPUT_SIZE || in_len < 2) {
         return -1;
     }
@@ -94,6 +98,10 @@ int base58_encode(const uint8_t *in, size_t in_len, char *out, size_t out_len) {
     size_t stop_at;
     size_t zero_count = 0;
     size_t output_size;
+
+    if (in == NULL || out == NULL) {
+        return -1;
+    }
 
     if (in_len > MAX_ENC_INPUT_SIZE) {
         return -1;

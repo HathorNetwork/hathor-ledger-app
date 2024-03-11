@@ -19,6 +19,11 @@
  */
 void validate_p2pkh_script(buffer_t *in, size_t script_len) {
     uint8_t p2pkh[] = {OP_DUP, OP_HASH160, PUBKEY_HASH_LEN, OP_EQUALVERIFY, OP_CHECKSIG};
+
+    if (in == NULL) {
+        THROW(SW_INTERNAL_ERROR);
+    }
+
     if (script_len != 25) {
         THROW(SW_TX_PARSING_FAIL);
     }
@@ -34,6 +39,9 @@ void validate_p2pkh_script(buffer_t *in, size_t script_len) {
 }
 
 void parse_output_value(buffer_t *buf, uint64_t *value) {
+     if (buf == NULL) {
+         THROW(TX_INTERNAL_ERROR);
+     }
     // if first bit is 1 value has length 8 bytes, otherwise it's 4 bytes
     bool flag = (bool) (0x80u & buf->ptr[0]);
     if (flag) {
@@ -58,6 +66,10 @@ void parse_output_value(buffer_t *buf, uint64_t *value) {
 size_t parse_output(uint8_t *in, size_t inlen, tx_output_t *output) {
     uint16_t script_len;
     buffer_t buf = {.ptr = in, .size = inlen, .offset = 0};
+
+    if (in == NULL || output == NULL) {
+        TRHOW(TX_INTERNAL_ERROR);
+    }
     parse_output_value(&buf, &output->value);
 
     // read token data and script length

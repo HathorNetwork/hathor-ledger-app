@@ -9,6 +9,9 @@
 #include "cx.h"
 
 size_t init_token_signature_message(uint8_t *secret, token_t *token, uint8_t *out) {
+    if (secret == NULL || token == NULL || out == NULL) {
+        return 0;
+    }
     // message == secret + uid + symbol + name + version
     size_t offset = 0;
     // add secret

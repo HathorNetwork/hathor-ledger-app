@@ -68,3 +68,7 @@
  * Status word for invalid signature (malformed or failed verification)
  */
 #define SW_INVALID_SIGNATURE 0xB00A
+/**
+ * Status word for internal error (should not happen)
+ */
+#define SW_INTERNAL_ERROR 0xB00B

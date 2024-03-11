@@ -19,6 +19,9 @@ bool is_printable(char *str, int len) {
 }
 
 bool parse_token(buffer_t *buf, token_t *token) {
+    if (buf == NULL || token == NULL) {
+        return false;
+    }
     // read uid, len(symbol), symbol, len(name), name, version
     if (!(buffer_read_u8(buf, &token->version) &&
           buffer_read_bytes(buf, token->uid, TOKEN_UID_LEN, TOKEN_UID_LEN) &&

@@ -18,6 +18,9 @@
 #include "../handler/reset_token_signatures.h"
 
 int apdu_dispatcher(const command_t *cmd) {
+    if (cmd == NULL) {
+        return io_send_sw(SW_INTERNAL_ERROR);
+    }
     if (cmd->cla != CLA) {
         return io_send_sw(SW_CLA_NOT_SUPPORTED);
     }
