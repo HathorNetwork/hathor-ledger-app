@@ -1,4 +1,5 @@
 #include <stdint.h>  // uint*_t
+#include <string.h>  // memmove, explicit_bzero
 
 #include "get_address.h"
 #include "../globals.h"

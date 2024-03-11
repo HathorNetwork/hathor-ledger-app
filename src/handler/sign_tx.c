@@ -217,7 +217,6 @@ bool sign_tx_with_key() {
     }
 
     cx_ecfp_private_key_t private_key = {0};
-    cx_ecfp_public_key_t public_key = {0};
 
     uint8_t chain_code[32];
 
@@ -225,7 +224,6 @@ bool sign_tx_with_key() {
                        chain_code,
                        G_context.bip32_path.path,
                        G_context.bip32_path.length);
-    init_public_key(&private_key, &public_key);
 
     if (G_context.tx_info.sighash_all[0] == '\0') {
         // finish sha256 from data
@@ -257,7 +255,6 @@ bool sign_tx_with_key() {
                                     NULL));
 
     explicit_bzero(&private_key, sizeof(private_key));
-    explicit_bzero(&public_key, sizeof(public_key));
 
     // exchange signature
     // io_send_response < 0 means faillure
