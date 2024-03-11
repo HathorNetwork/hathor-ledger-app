@@ -26,6 +26,7 @@ class DeviceException(Exception):  # pylint: disable=too-few-public-methods
         0xB008: SignatureFailError,
         0xB009: TxInvalidError,
         0xB00A: InvalidSignatureError,
+        0xB00B: InternalError,
     }
 
     os_exc: Dict[int, Any] = {

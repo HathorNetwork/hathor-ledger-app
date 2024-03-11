@@ -64,3 +64,7 @@ class TxInvalidError(Exception):
 
 class InvalidSignatureError(Exception):
     pass
+
+
+class InternalError(Exception):
+    pass
