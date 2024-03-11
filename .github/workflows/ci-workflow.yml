@@ -93,10 +93,12 @@ jobs:
           cd tests && make install && make test
 
       - name: Show speculos log
+        if: success() || failure()
         run: |
           cat speculos.log
 
       - name: Upload Speculos log
+        if: success() || failure()
         uses: actions/upload-artifact@v2
         with:
           name: speculos-log
