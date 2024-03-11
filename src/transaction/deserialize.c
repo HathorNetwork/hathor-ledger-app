@@ -39,9 +39,9 @@ void validate_p2pkh_script(buffer_t *in, size_t script_len) {
 }
 
 void parse_output_value(buffer_t *buf, uint64_t *value) {
-     if (buf == NULL) {
-         THROW(SW_INTERNAL_ERROR);
-     }
+    if (buf == NULL) {
+        THROW(SW_INTERNAL_ERROR);
+    }
     // if first bit is 1 value has length 8 bytes, otherwise it's 4 bytes
     bool flag = (bool) (0x80u & buf->ptr[0]);
     if (flag) {
