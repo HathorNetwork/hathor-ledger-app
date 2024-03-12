@@ -59,7 +59,7 @@ int sign_token(uint8_t secret[static SECRET_LEN],
 // verify token signature
 int verify_token_signature(uint8_t *secret, token_t *token, uint8_t *signature, size_t siglen) {
     uint8_t sign[32];
-    if (siglen < 32) {
+    if (secret == NULL || token == NULL || signature == NULL || siglen < 32) {
         return 2;
     }
     if (sign_token(secret, token, sign, 32)) {
