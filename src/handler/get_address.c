@@ -23,9 +23,9 @@ void derive_address() {
                                 G_context.bip32_path.length));
     CX_CHECK(init_public_key(&private_key, &public_key));
 
-    const size_t pubk_size =
+    const size_t pubk_buflen =
         sizeof(G_context.pk_info.raw_public_key) / sizeof(G_context.pk_info.raw_public_key[0]);
-    if (pubk_size < public_key.W_len) {
+    if (pubk_buflen < public_key.W_len) {
         error = CX_INTERNAL_ERROR;
         goto end;
     }

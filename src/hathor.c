@@ -97,7 +97,7 @@ int address_from_pubkey(cx_ecfp_public_key_t *public_key, uint8_t *out, size_t o
 
     // compress_public_key
     if (compress_public_key(public_key->W, sizeof(public_key->W) / sizeof(public_key->W[0]))) {
-      return 1;
+        return 1;
     }
     // hash160
     if (hash160(public_key->W, 33, buffer, PUBKEY_HASH_LEN)) {
