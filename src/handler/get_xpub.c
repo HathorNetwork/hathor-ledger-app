@@ -42,7 +42,8 @@ void derive_xpub() {
 
     memmove(G_context.pk_info.raw_public_key, public_key.W, public_key.W_len);
     // pk_info.chain_code is a static buffer with size 32
-    size_t chain_buflen = sizeof(G_context.pk_info.chain_code) / sizeof(G_context.pk_info.chain_code[0]);
+    size_t chain_buflen =
+        sizeof(G_context.pk_info.chain_code) / sizeof(G_context.pk_info.chain_code[0]);
     if (chain_buflen < 32) {
         error = CX_INTERNAL_ERROR;
         goto end;
@@ -61,7 +62,8 @@ void derive_xpub() {
     CX_CHECK(compress_public_key(public_key.W, sizeof(public_key.W) / sizeof(public_key.W[0])));
     CX_CHECK(hash160(public_key.W, 33, hash_160, 20));
     // pk_info.fingerprint is a static buffer with size 4
-    size_t fp_buflen = sizeof(G_context.pk_info.fingerprint) / sizeof(G_context.pk_info.fingerprint[0]);
+    size_t fp_buflen =
+        sizeof(G_context.pk_info.fingerprint) / sizeof(G_context.pk_info.fingerprint[0]);
     if (fp_buflen < 4) {
         error = CX_INTERNAL_ERROR;
         goto end;
