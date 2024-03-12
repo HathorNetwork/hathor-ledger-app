@@ -22,15 +22,16 @@ void derive_xpub() {
 
     uint8_t chain_code[32];
     uint8_t hash_160[20];
+    uint32_t error = CX_OK;
 
     uint32_t parent_path[MAX_BIP32_PATH] = {0};
 
     // derive for bip32 path
-    derive_private_key(&private_key,
+    CX_CHECK(derive_private_key(&private_key,
                        chain_code,
                        G_context.bip32_path.path,
-                       G_context.bip32_path.length);
-    init_public_key(&private_key, &public_key);
+                       G_context.bip32_path.length));
+    CX_CHECK(init_public_key(&private_key, &public_key));
 
     memmove(G_context.pk_info.raw_public_key, public_key.W, public_key.W_len);
     memmove(G_context.pk_info.chain_code, chain_code, 32);
@@ -39,20 +40,23 @@ void derive_xpub() {
     for (int i = 0; i < G_context.bip32_path.length - 1; i++) {
         parent_path[i] = G_context.bip32_path.path[i];
     }
-    derive_private_key(&private_key, chain_code, parent_path, G_context.bip32_path.length - 1);
-    init_public_key(&private_key, &public_key);
+    CX_CHECK(derive_private_key(&private_key, chain_code, parent_path, G_context.bip32_path.length - 1));
+    CX_CHECK(init_public_key(&private_key, &public_key));
 
     // fingerprint is first 4 bytes of hash160
-    compress_public_key(public_key.W);
-    if (hash160(public_key.W, 33, hash_160)) {
-      explicit_bzero(&private_key, sizeof(private_key));
-      explicit_bzero(&public_key, sizeof(public_key));
-      THROW(SW_INTERNAL_ERROR);
-    }
+    CX_CHECK(compress_public_key(public_key.W, sizeof(public_key.W)/sizeof(public_key.W[0])));
+    CX_CHECK(hash160(public_key.W, 33, hash_160, 20));
     memmove(G_context.pk_info.fingerprint, hash_160, 4);
 
+end:
     explicit_bzero(&private_key, sizeof(private_key));
     explicit_bzero(&public_key, sizeof(public_key));
+    explicit_bzero(&chain_code, sizeof(public_key));
+    explicit_bzero(&hash_160, sizeof(hash_160));
+
+    if (error != CX_OK) {
+      THROW(SW_INTERNAL_ERROR);
+    }
 }
 
 int handler_get_xpub(buffer_t *cdata) {

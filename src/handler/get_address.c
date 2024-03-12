@@ -14,18 +14,28 @@ void derive_address() {
     cx_ecfp_private_key_t private_key = {0};
     cx_ecfp_public_key_t public_key = {0};
     uint8_t chain_code[32];
+    uint32_t error = CX_OK;
 
     // derive for bip32 path
-    derive_private_key(&private_key,
+    CX_CHECK(derive_private_key(&private_key,
                        chain_code,
                        G_context.bip32_path.path,
-                       G_context.bip32_path.length);
-    init_public_key(&private_key, &public_key);
+                       G_context.bip32_path.length));
+    CX_CHECK(init_public_key(&private_key, &public_key));
 
+    if ((sizeof(G_context.pk_info.raw_public_key)/sizeof(G_context.pk_info.raw_public_key[0])) < public_key.W_len) {
+      error = CX_INTERNAL_ERROR;
+      goto end;
+    }
     memmove(G_context.pk_info.raw_public_key, public_key.W, public_key.W_len);
 
+end:
     explicit_bzero(&private_key, sizeof(private_key));
     explicit_bzero(&public_key, sizeof(public_key));
+
+    if (error != CX_OK) {
+        THROW(SW_INTERNAL_ERROR);
+    }
 }
 
 int handler_get_address(buffer_t *cdata) {

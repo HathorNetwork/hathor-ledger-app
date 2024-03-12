@@ -304,7 +304,9 @@ bool prepare_display_output() {
     memset(g_address, 0, sizeof(g_address));
     char b58address[B58_ADDRESS_LEN] = {0};
     uint8_t address[ADDRESS_LEN] = {0};
-    address_from_pubkey_hash(output.pubkey_hash, address);
+    if (address_from_pubkey_hash(output.pubkey_hash, PUBKEY_HASH_LEN, address, ADDRESS_LEN)) {
+      THROW(SW_INTERNAL_ERROR);
+    }
     base58_encode(address, ADDRESS_LEN, b58address, B58_ADDRESS_LEN);
     memmove(g_address, b58address, sizeof(b58address));
 
@@ -433,24 +435,32 @@ int ui_display_confirm_address() {
     cx_ecfp_private_key_t private_key = {0};
     cx_ecfp_public_key_t public_key = {0};
     uint8_t chain_code[32];
+    cx_error_t error = CX_OK;
 
     uint8_t address[ADDRESS_LEN] = {0};
     char b58address[B58_ADDRESS_LEN] = {0};
 
     // derive for bip32 path
-    derive_private_key(&private_key,
+    CX_CHECK(derive_private_key(&private_key,
                        chain_code,
                        G_context.bip32_path.path,
-                       G_context.bip32_path.length);
-    init_public_key(&private_key, &public_key);
+                       G_context.bip32_path.length));
+    CX_CHECK(init_public_key(&private_key, &public_key));
 
     // Generate address from public key
-    address_from_pubkey(&public_key, address);
+    CX_CHECK(address_from_pubkey(&public_key, address, ADDRESS_LEN));
     base58_encode(address, ADDRESS_LEN, b58address, B58_ADDRESS_LEN);
     memmove(g_address, b58address, sizeof(b58address));
 
+end:
+
     explicit_bzero(&private_key, sizeof(private_key));
     explicit_bzero(&public_key, sizeof(public_key));
+
+    if (error != CX_OK) {
+        G_context.state = STATE_NONE;
+        return io_send_sw(SW_INTERNAL_ERROR);
+    }
 
     g_validate_callback = &ui_action_confirm_address;
 
@@ -459,7 +469,7 @@ int ui_display_confirm_address() {
     return 0;
 }
 
-// Reset token signatures: ui_display_confirm_address
+// Reset token signatures: ui_confirm_reset_token_signatures
 
 void ui_confirm_reset_token_signatures(bool choice) {
     if (choice) {
