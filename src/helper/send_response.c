@@ -28,12 +28,19 @@ int helper_send_response_xpub() {
 int helper_send_token_data_signature() {
     uint8_t sign[32];
     uint8_t secret[SECRET_LEN];
+    int error = 0;
 
-    get_secret(secret);
-    sign_token(secret, &G_context.token, sign);
+    error = get_secret(secret);
+    if (!error) {
+        error = sign_token(secret, &G_context.token, sign, 32);
+    }
 
     // clear secret
     explicit_bzero(secret, SECRET_LEN);
+
+    if (error) {
+      return io_send_sw(SW_INTERNAL_ERROR);
+    }
 
     // return the signature
     return io_send_response(&(const buffer_t){.ptr = sign, .size = 32, .offset = 0}, SW_OK);

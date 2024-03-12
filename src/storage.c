@@ -3,19 +3,20 @@
 
 #include "os.h"
 
-void get_secret(uint8_t* secret) {
+int get_secret(uint8_t secret[static SECRET_LEN]) {
     if (secret == NULL) {
-        return;
+        return 1;
     }
     for (uint8_t i = 0; i < SECRET_LEN; i++) {
         if (*(N_storage.secret + i) != 0) {
             memmove(secret, (const uint8_t*) N_storage.secret, SECRET_LEN);
-            return;
+            return 0;
         }
     }
     // first access, generate and write to storage
     generate_secret();
     memmove(secret, (const uint8_t*) N_storage.secret, SECRET_LEN);
+    return 0;
 }
 
 void generate_secret() {

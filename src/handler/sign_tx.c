@@ -123,6 +123,8 @@ void read_change_info_old_protocol(uint8_t change_byte, buffer_t *cdata) {
         THROW(SW_WRONG_DATA_LENGTH);
     }
 
+    // buffer+1 has 4*MAX_BIP32_PATH capacity
+    // buffer[0] is limited to MAX_BIP32_PATH
     memmove(buffer + 1, cdata->ptr + cdata->offset, 4 * buffer[0]);
     buffer_seek_cur(cdata, 4 * buffer[0]);
     buffer_t bufdata = {.ptr = buffer, .size = 1 + 4 * MAX_BIP32_PATH, .offset = 0};

@@ -24,9 +24,9 @@ static action_validate_cb g_validate_callback;
 static char g_amount[30];
 static char g_output_index[10];
 static char g_address[B58_ADDRESS_LEN];
-static char g_token_symbol[6];
-static char g_token_name[31];
-static char g_token_uid[65];
+static char g_token_symbol[MAX_TOKEN_SYMBOL_LEN + 1];
+static char g_token_name[MAX_TOKEN_NAME_LEN + 1];
+static char g_token_uid[1 + 2 * TOKEN_UID_LEN];
 #ifdef UI_SHOW_PATH
 static char g_bip32_path[60];
 
@@ -305,10 +305,13 @@ bool prepare_display_output() {
     char b58address[B58_ADDRESS_LEN] = {0};
     uint8_t address[ADDRESS_LEN] = {0};
     if (address_from_pubkey_hash(output.pubkey_hash, PUBKEY_HASH_LEN, address, ADDRESS_LEN)) {
-        THROW(SW_INTERNAL_ERROR);
+        explicit_bzero(&G_context, sizeof(G_context));
+        io_send_sw(SW_INTERNAL_ERROR);
+        ui_menu_main();
+        return true;
     }
     base58_encode(address, ADDRESS_LEN, b58address, B58_ADDRESS_LEN);
-    memmove(g_address, b58address, sizeof(b58address));
+    memmove(g_address, b58address, B58_ADDRESS_LEN);
 
     // set g_ammount (HTR value)
     memset(g_amount, 0, sizeof(g_amount));
@@ -450,7 +453,7 @@ int ui_display_confirm_address() {
     // Generate address from public key
     CX_CHECK(address_from_pubkey(&public_key, address, ADDRESS_LEN));
     base58_encode(address, ADDRESS_LEN, b58address, B58_ADDRESS_LEN);
-    memmove(g_address, b58address, sizeof(b58address));
+    memmove(g_address, b58address, B58_ADDRESS_LEN);
 
 end:
 
@@ -458,8 +461,10 @@ end:
     explicit_bzero(&public_key, sizeof(public_key));
 
     if (error != CX_OK) {
-        G_context.state = STATE_NONE;
-        return io_send_sw(SW_INTERNAL_ERROR);
+        explicit_bzero(&G_context, sizeof(G_context));
+        io_send_sw(SW_INTERNAL_ERROR);
+        ui_menu_main();
+        return 1;
     }
 
     g_validate_callback = &ui_action_confirm_address;
@@ -520,6 +525,12 @@ UX_FLOW(ux_display_sign_token_data,
         FLOW_LOOP);
 
 int ui_display_sign_token_data() {
+    if ((G_context.token.symbol_len > MAX_TOKEN_SYMBOL_LEN) || (G_context.token.name_len > MAX_TOKEN_NAME_LEN)) {
+        explicit_bzero(&G_context, sizeof(G_context));
+        io_send_sw(SW_INTERNAL_ERROR);
+        ui_menu_main();
+        return 1;
+    }
     // show token information
     // copy symbol
     memmove(g_token_symbol, G_context.token.symbol, G_context.token.symbol_len);

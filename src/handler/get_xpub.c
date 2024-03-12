@@ -33,7 +33,15 @@ void derive_xpub() {
                                 G_context.bip32_path.length));
     CX_CHECK(init_public_key(&private_key, &public_key));
 
+    const size_t pubk_buflen =
+        sizeof(G_context.pk_info.raw_public_key) / sizeof(G_context.pk_info.raw_public_key[0]);
+    if (pubk_buflen < public_key.W_len) {
+        error = CX_INTERNAL_ERROR;
+        goto end;
+    }
+
     memmove(G_context.pk_info.raw_public_key, public_key.W, public_key.W_len);
+    // pk_info.chain_code is a static buffer with size 32
     memmove(G_context.pk_info.chain_code, chain_code, 32);
 
     // derive parent
@@ -47,6 +55,7 @@ void derive_xpub() {
     // fingerprint is first 4 bytes of hash160
     CX_CHECK(compress_public_key(public_key.W, sizeof(public_key.W) / sizeof(public_key.W[0])));
     CX_CHECK(hash160(public_key.W, 33, hash_160, 20));
+    // pk_info.fingerprint is a static buffer with size 4
     memmove(G_context.pk_info.fingerprint, hash_160, 4);
 
 end:

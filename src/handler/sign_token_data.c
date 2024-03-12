@@ -8,6 +8,8 @@
 int handler_sign_token_data(buffer_t *cdata) {
     explicit_bzero(&G_context, sizeof(G_context));
     // parse info on token to global context
-    if (!parse_token(cdata, &G_context.token)) return io_send_sw(SW_INVALID_SIGNATURE);
+    if (!parse_token(cdata, &G_context.token)) {
+        return io_send_sw(SW_INVALID_SIGNATURE);
+    }
     return ui_display_sign_token_data();
 }
