@@ -80,7 +80,9 @@ int address_from_pubkey_hash(const uint8_t *public_key_hash,
     out[0] = P2PKH_VERSION_BYTE;
     memmove(out + 1, public_key_hash, PUBKEY_HASH_LEN);
     // sha256d of above
-    if (sha256d(out, 21, buffer, 32)) return 1;
+    if (sha256d(out, 21, buffer, 32)) {
+        return 1;
+    };
     // grab first 4 bytes (checksum)
     memmove(out + 21, buffer, 4);
     return 0;
@@ -94,10 +96,13 @@ int address_from_pubkey(cx_ecfp_public_key_t *public_key, uint8_t *out, size_t o
     }
 
     // compress_public_key
-    if (compress_public_key(public_key->W, sizeof(public_key->W) / sizeof(public_key->W[0])))
-        return 1;
+    if (compress_public_key(public_key->W, sizeof(public_key->W) / sizeof(public_key->W[0]))) {
+      return 1;
+    }
     // hash160
-    if (hash160(public_key->W, 33, buffer, PUBKEY_HASH_LEN)) return 1;
+    if (hash160(public_key->W, 33, buffer, PUBKEY_HASH_LEN)) {
+        return 1;
+    }
     // address_from_pubkey_hash
     return address_from_pubkey_hash(buffer, PUBKEY_HASH_LEN, out, outlen);
 }
@@ -105,7 +110,7 @@ int address_from_pubkey(cx_ecfp_public_key_t *public_key, uint8_t *out, size_t o
 int derive_private_key(cx_ecfp_private_key_t *private_key,
                        uint8_t chain_code[static 32],
                        const uint32_t *bip32_path,
-                       uint8_t bip32_path_len) {
+                       uint8_t bip32_path_depth) {
     cx_err_t error = CX_OK;
     uint8_t raw_privkey[65];
 
@@ -117,7 +122,7 @@ int derive_private_key(cx_ecfp_private_key_t *private_key,
     CX_CHECK(os_derive_bip32_with_seed_no_throw(HDW_NORMAL,
                                                 CX_CURVE_256K1,
                                                 bip32_path,
-                                                bip32_path_len,
+                                                bip32_path_depth,
                                                 raw_privkey,
                                                 chain_code,
                                                 NULL,
