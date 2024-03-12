@@ -33,3 +33,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Sign TX command now supports transactions with custom tokens
+
+## [1.1.1] - 2024-03-12
+
+### Added
+
+- CodeQL security check
+
+### Changed
+
+- Security updates and protections against vulnerabilities
+- Update deprecated OS calls
+- Clean dead code
