@@ -65,9 +65,9 @@ typedef enum {
 } request_type_e;
 
 #define MAX_SCREEN_LENGTH 12
-#define CHAINCODE_LEN 32
-#define FINGERPRINT_LEN 4
-#define RAW_PUBKEY_LEN 65
+#define CHAINCODE_LEN     32
+#define FINGERPRINT_LEN   4
+#define RAW_PUBKEY_LEN    65
 /**
  * Structure for public key context information.
  */
