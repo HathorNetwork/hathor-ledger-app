@@ -11,13 +11,13 @@
 // Path prefix of 44'/280'
 const uint32_t htr_bip44[] = {44 | 0x80000000, HATHOR_BIP44_CODE | 0x80000000};
 
-void sha256d(uint8_t *in, size_t inlen, uint8_t *out) {
+int sha256d(uint8_t *in, size_t inlen, uint8_t *out) {
     cx_sha256_t hash;
     uint8_t buffer[32];
 
     // Check for NULL pointers
     if ((in == NULL) || (out == NULL)) {
-        return;
+        return 1;
     }
 
     // sha256 of input to `buffer`
@@ -26,9 +26,10 @@ void sha256d(uint8_t *in, size_t inlen, uint8_t *out) {
     // sha256 of buffer to `out`
     cx_sha256_init(&hash);
     CX_THROW(cx_hash_no_throw(&hash.header, CX_LAST, buffer, 32, out, 32));
+    return 0;
 }
 
-void hash160(uint8_t *in, size_t inlen, uint8_t *out) {
+int hash160(uint8_t *in, size_t inlen, uint8_t *out) {
     union {
         cx_sha256_t shasha;
         cx_ripemd160_t riprip;
@@ -36,31 +37,37 @@ void hash160(uint8_t *in, size_t inlen, uint8_t *out) {
     uint8_t buffer[32] = {0};
 
     if ((in == NULL) || (out == NULL)) {
-        return;
+        return 1;
     }
 
     cx_sha256_init(&u.shasha);
     CX_THROW(cx_hash_no_throw(&u.shasha.header, CX_LAST, in, inlen, buffer, 32));
     cx_ripemd160_init(&u.riprip);
     CX_THROW(cx_hash_no_throw(&u.riprip.header, CX_LAST, buffer, 32, out, 20));
+    return 0;
 }
 
-void compress_public_key(uint8_t *value) {
+int compress_public_key(uint8_t *value) {
+    if (value == NULL) {
+      return 1;
+    }
     value[0] = ((value[64] & 1) ? 0x03 : 0x02);
 }
 
-void address_from_pubkey_hash(const uint8_t *public_key_hash, uint8_t *out) {
+int address_from_pubkey_hash(const uint8_t *public_key_hash, uint8_t *out) {
     uint8_t buffer[32] = {0};
     // prepend version
     out[0] = P2PKH_VERSION_BYTE;
     memmove(out + 1, public_key_hash, PUBKEY_HASH_LEN);
     // sha256d of above
-    sha256d(out, 21, buffer);
+    int err = sha256d(out, 21, buffer);
+    if (err) return err;
     // grab first 4 bytes (checksum)
     memmove(out + 21, buffer, 4);
+    return 0;
 }
 
-void address_from_pubkey(cx_ecfp_public_key_t *public_key, uint8_t *out) {
+int address_from_pubkey(cx_ecfp_public_key_t *public_key, uint8_t *out) {
     uint8_t buffer[PUBKEY_HASH_LEN] = {0};
 
     if ((public_key == NULL) || (out == NULL)) {
@@ -69,9 +76,9 @@ void address_from_pubkey(cx_ecfp_public_key_t *public_key, uint8_t *out) {
     // compress_public_key
     compress_public_key(public_key->W);
     // hash160
-    hash160(public_key->W, 33, buffer);
+    if (hash160(public_key->W, 33, buffer)) return 1;
     // address_from_pubkey_hash
-    address_from_pubkey_hash(buffer, out);
+    return address_from_pubkey_hash(buffer, out);
 }
 
 void derive_private_key(cx_ecfp_private_key_t *private_key,

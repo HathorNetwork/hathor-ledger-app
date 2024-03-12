@@ -18,9 +18,10 @@ extern const uint32_t htr_bip44[2];
  *   Lenght of input byte buffer.
  * @param[out] out
  *   Pointer to output byte buffer for address.
+ * @return 0 on success
  *
  */
-void sha256d(uint8_t *in, size_t inlen, uint8_t *out);
+int sha256d(uint8_t *in, size_t inlen, uint8_t *out);
 
 /**
  * Performs the hash160 (sha256 + ripemd160) of the data
@@ -31,9 +32,10 @@ void sha256d(uint8_t *in, size_t inlen, uint8_t *out);
  *   Lenght of input byte buffer.
  * @param[out] out
  *   Pointer to output byte buffer for address.
+ * @return 0 on success
  *
  */
-void hash160(uint8_t *in, size_t inlen, uint8_t *out);
+int hash160(uint8_t *in, size_t inlen, uint8_t *out);
 
 /**
  * Convert public key to address.
@@ -44,9 +46,10 @@ void hash160(uint8_t *in, size_t inlen, uint8_t *out);
  *   Pointer to public key.
  * @param[out] out
  *   Pointer to output byte buffer for address.
+ * @return 0 on success
  *
  */
-void address_from_pubkey(cx_ecfp_public_key_t *public_key, uint8_t *out);
+int address_from_pubkey(cx_ecfp_public_key_t *public_key, uint8_t *out);
 
 /**
  * Convert public key hash160 to address.
@@ -58,9 +61,10 @@ void address_from_pubkey(cx_ecfp_public_key_t *public_key, uint8_t *out);
  *   An array of at least 20 bytes (uint8_t).
  * @param[out] out
  *   Pointer to output byte buffer for address.
+ * @return 0 on success
  *
  */
-void address_from_pubkey_hash(const uint8_t *public_key_hash, uint8_t *out);
+int address_from_pubkey_hash(const uint8_t *public_key_hash, uint8_t *out);
 
 /**
  * Derive private key given BIP32 path.

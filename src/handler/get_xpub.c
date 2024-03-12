@@ -44,7 +44,11 @@ void derive_xpub() {
 
     // fingerprint is first 4 bytes of hash160
     compress_public_key(public_key.W);
-    hash160(public_key.W, 33, hash_160);
+    if (hash160(public_key.W, 33, hash_160)) {
+      explicit_bzero(&private_key, sizeof(private_key));
+      explicit_bzero(&public_key, sizeof(public_key));
+      THROW(SW_INTERNAL_ERROR);
+    }
     memmove(G_context.pk_info.fingerprint, hash_160, 4);
 
     explicit_bzero(&private_key, sizeof(private_key));
