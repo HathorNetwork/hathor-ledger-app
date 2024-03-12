@@ -42,6 +42,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Security updates and protections against vulnerabilities
+- Code improvements to prevent null pointer exception and buffer overflow.
 - Update deprecated OS calls
 - Clean dead code
