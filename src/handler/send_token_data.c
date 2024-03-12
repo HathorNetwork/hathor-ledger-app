@@ -20,7 +20,16 @@ int handler_send_token_data(bool first, buffer_t *cdata) {
         return io_send_sw(SW_WRONG_DATA_LENGTH);
     }
 
-    if (!check_token_signature_from_apdu(cdata, &token)) return io_send_sw(SW_INVALID_SIGNATURE);
+    int is_token_verified = check_token_signature_from_apdu(cdata, &token);
+    switch (is_token_verified) {
+        case 0:
+            break;
+        case 1:
+            return io_send_sw(SW_INVALID_SIGNATURE);
+        default:
+            PRINTF("[-] [send_token_data] Internal error %d\n", is_token_verified);
+            return io_send_sw(SW_INTERNAL_ERROR);
+    }
 
     // save token/symbol on global ctx
     token_symbol_t *token_symbol = &G_token_symbols.tokens[G_token_symbols.len++];
