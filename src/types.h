@@ -65,15 +65,18 @@ typedef enum {
 } request_type_e;
 
 #define MAX_SCREEN_LENGTH 12
+#define CHAINCODE_LEN 32
+#define FINGERPRINT_LEN 4
+#define RAW_PUBKEY_LEN 65
 /**
  * Structure for public key context information.
  */
 typedef struct {
     bip32_path_t key_path;
 
-    uint8_t raw_public_key[65];
-    uint8_t chain_code[32];  /// for public key derivation
-    uint8_t fingerprint[4];
+    uint8_t raw_public_key[RAW_PUBKEY_LEN];
+    uint8_t chain_code[CHAINCODE_LEN];
+    uint8_t fingerprint[FINGERPRINT_LEN];
 } xpub_ctx_t;
 
 /**

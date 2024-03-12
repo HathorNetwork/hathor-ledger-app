@@ -9,18 +9,19 @@
 #include "common/buffer.h"
 #include "../hathor.h"
 #include "../storage.h"
+#include "../types.h"
 
 #include "../token/signature.h"
 
 int helper_send_response_xpub() {
-    uint8_t resp[PUBKEY_LEN + CHAINCODE_LEN + 4] = {0};
+    uint8_t resp[RAW_PUBKEY_LEN + CHAINCODE_LEN + 4] = {0};
     size_t offset = 0;
-    memmove(resp + offset, G_context.pk_info.raw_public_key, PUBKEY_LEN);
-    offset += PUBKEY_LEN;
+    memmove(resp + offset, G_context.pk_info.raw_public_key, RAW_PUBKEY_LEN);
+    offset += RAW_PUBKEY_LEN;
     memmove(resp + offset, G_context.pk_info.chain_code, CHAINCODE_LEN);
     offset += CHAINCODE_LEN;
-    memmove(resp + offset, G_context.pk_info.fingerprint, 4);
-    offset += 4;
+    memmove(resp + offset, G_context.pk_info.fingerprint, FINGERPRINT_LEN);
+    offset += FINGERPRINT_LEN;
 
     return io_send_response(&(const buffer_t){.ptr = resp, .size = offset, .offset = 0}, SW_OK);
 }

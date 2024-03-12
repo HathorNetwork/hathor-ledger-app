@@ -437,7 +437,7 @@ int ui_display_confirm_address() {
 
     cx_ecfp_private_key_t private_key = {0};
     cx_ecfp_public_key_t public_key = {0};
-    uint8_t chain_code[32];
+    uint8_t chain_code[CHAINCODE_LEN];
     cx_err_t error = CX_OK;
 
     uint8_t address[ADDRESS_LEN] = {0};
