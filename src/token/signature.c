@@ -57,10 +57,13 @@ int sign_token(uint8_t secret[static SECRET_LEN],
 }
 
 // verify token signature
-int verify_token_signature(uint8_t *secret, token_t *token, uint8_t *signature) {
+int verify_token_signature(uint8_t *secret, token_t *token, uint8_t *signature, size_t siglen) {
     uint8_t sign[32];
-    if (sign_token(secret, token, sign, 32)) {
+    if (siglen < 32) {
         return 2;
+    }
+    if (sign_token(secret, token, sign, 32)) {
+        return 3;
     }
     if (memcmp(signature, sign, 32) == 0) {
         return 0;
@@ -89,7 +92,7 @@ int check_token_signature_from_apdu(buffer_t *cdata, token_t *token) {
     if (get_secret(secret)) {
         return 5;
     }
-    int is_token_verified = verify_token_signature(secret, token, signature);
+    int is_token_verified = verify_token_signature(secret, token, signature, 32);
 
     // clear secret
     explicit_bzero(secret, SECRET_LEN);
