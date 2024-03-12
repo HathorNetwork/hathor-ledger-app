@@ -9,7 +9,10 @@
 #include "cx.h"
 #include "types.h"
 
-size_t init_token_signature_message(uint8_t secret[static SECRET_LEN], token_t *token, uint8_t *out, size_t outlen) {
+size_t init_token_signature_message(uint8_t secret[static SECRET_LEN],
+                                    token_t *token,
+                                    uint8_t *out,
+                                    size_t outlen) {
     if (secret == NULL || token == NULL || out == NULL || outlen < MAX_MESSAGE_LEN) {
         return 0;
     }
@@ -35,7 +38,10 @@ size_t init_token_signature_message(uint8_t secret[static SECRET_LEN], token_t *
 }
 
 // sign token
-int sign_token(uint8_t secret[static SECRET_LEN], token_t *token, uint8_t *signature, size_t siglen) {
+int sign_token(uint8_t secret[static SECRET_LEN],
+               token_t *token,
+               uint8_t *signature,
+               size_t siglen) {
     uint8_t message[MAX_MESSAGE_LEN];
 
     if (secret == NULL || token == NULL || signature == NULL || siglen < 32) {

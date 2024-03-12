@@ -525,7 +525,8 @@ UX_FLOW(ux_display_sign_token_data,
         FLOW_LOOP);
 
 int ui_display_sign_token_data() {
-    if ((G_context.token.symbol_len > MAX_TOKEN_SYMBOL_LEN) || (G_context.token.name_len > MAX_TOKEN_NAME_LEN)) {
+    if ((G_context.token.symbol_len > MAX_TOKEN_SYMBOL_LEN) ||
+        (G_context.token.name_len > MAX_TOKEN_NAME_LEN)) {
         explicit_bzero(&G_context, sizeof(G_context));
         io_send_sw(SW_INTERNAL_ERROR);
         ui_menu_main();

@@ -21,7 +21,10 @@
  *   Length of signature buffer.
  * @return 0 if success
  */
-int sign_token(uint8_t secret[static SECRET_LEN], token_t *token, uint8_t *signature, size_t siglen);
+int sign_token(uint8_t secret[static SECRET_LEN],
+               token_t *token,
+               uint8_t *signature,
+               size_t siglen);
 
 /**
  * Verify a token signature

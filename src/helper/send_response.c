@@ -39,7 +39,7 @@ int helper_send_token_data_signature() {
     explicit_bzero(secret, SECRET_LEN);
 
     if (error) {
-      return io_send_sw(SW_INTERNAL_ERROR);
+        return io_send_sw(SW_INTERNAL_ERROR);
     }
 
     // return the signature
