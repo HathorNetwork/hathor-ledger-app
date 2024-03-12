@@ -305,7 +305,7 @@ bool prepare_display_output() {
     char b58address[B58_ADDRESS_LEN] = {0};
     uint8_t address[ADDRESS_LEN] = {0};
     if (address_from_pubkey_hash(output.pubkey_hash, PUBKEY_HASH_LEN, address, ADDRESS_LEN)) {
-      THROW(SW_INTERNAL_ERROR);
+        THROW(SW_INTERNAL_ERROR);
     }
     base58_encode(address, ADDRESS_LEN, b58address, B58_ADDRESS_LEN);
     memmove(g_address, b58address, sizeof(b58address));
@@ -435,16 +435,16 @@ int ui_display_confirm_address() {
     cx_ecfp_private_key_t private_key = {0};
     cx_ecfp_public_key_t public_key = {0};
     uint8_t chain_code[32];
-    cx_error_t error = CX_OK;
+    cx_err_t error = CX_OK;
 
     uint8_t address[ADDRESS_LEN] = {0};
     char b58address[B58_ADDRESS_LEN] = {0};
 
     // derive for bip32 path
     CX_CHECK(derive_private_key(&private_key,
-                       chain_code,
-                       G_context.bip32_path.path,
-                       G_context.bip32_path.length));
+                                chain_code,
+                                G_context.bip32_path.path,
+                                G_context.bip32_path.length));
     CX_CHECK(init_public_key(&private_key, &public_key));
 
     // Generate address from public key

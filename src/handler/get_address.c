@@ -18,14 +18,15 @@ void derive_address() {
 
     // derive for bip32 path
     CX_CHECK(derive_private_key(&private_key,
-                       chain_code,
-                       G_context.bip32_path.path,
-                       G_context.bip32_path.length));
+                                chain_code,
+                                G_context.bip32_path.path,
+                                G_context.bip32_path.length));
     CX_CHECK(init_public_key(&private_key, &public_key));
 
-    if ((sizeof(G_context.pk_info.raw_public_key)/sizeof(G_context.pk_info.raw_public_key[0])) < public_key.W_len) {
-      error = CX_INTERNAL_ERROR;
-      goto end;
+    if ((sizeof(G_context.pk_info.raw_public_key) / sizeof(G_context.pk_info.raw_public_key[0])) <
+        public_key.W_len) {
+        error = CX_INTERNAL_ERROR;
+        goto end;
     }
     memmove(G_context.pk_info.raw_public_key, public_key.W, public_key.W_len);
 

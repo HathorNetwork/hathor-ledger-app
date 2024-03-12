@@ -28,9 +28,9 @@ void derive_xpub() {
 
     // derive for bip32 path
     CX_CHECK(derive_private_key(&private_key,
-                       chain_code,
-                       G_context.bip32_path.path,
-                       G_context.bip32_path.length));
+                                chain_code,
+                                G_context.bip32_path.path,
+                                G_context.bip32_path.length));
     CX_CHECK(init_public_key(&private_key, &public_key));
 
     memmove(G_context.pk_info.raw_public_key, public_key.W, public_key.W_len);
@@ -40,11 +40,12 @@ void derive_xpub() {
     for (int i = 0; i < G_context.bip32_path.length - 1; i++) {
         parent_path[i] = G_context.bip32_path.path[i];
     }
-    CX_CHECK(derive_private_key(&private_key, chain_code, parent_path, G_context.bip32_path.length - 1));
+    CX_CHECK(
+        derive_private_key(&private_key, chain_code, parent_path, G_context.bip32_path.length - 1));
     CX_CHECK(init_public_key(&private_key, &public_key));
 
     // fingerprint is first 4 bytes of hash160
-    CX_CHECK(compress_public_key(public_key.W, sizeof(public_key.W)/sizeof(public_key.W[0])));
+    CX_CHECK(compress_public_key(public_key.W, sizeof(public_key.W) / sizeof(public_key.W[0])));
     CX_CHECK(hash160(public_key.W, 33, hash_160, 20));
     memmove(G_context.pk_info.fingerprint, hash_160, 4);
 
@@ -55,7 +56,7 @@ end:
     explicit_bzero(&hash_160, sizeof(hash_160));
 
     if (error != CX_OK) {
-      THROW(SW_INTERNAL_ERROR);
+        THROW(SW_INTERNAL_ERROR);
     }
 }
 

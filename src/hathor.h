@@ -74,7 +74,10 @@ int address_from_pubkey(cx_ecfp_public_key_t *public_key, uint8_t *out, size_t o
  * @return 0 on success
  *
  */
-int address_from_pubkey_hash(const uint8_t *public_key_hash, size_t public_key_hash_len, uint8_t *out, size_t outlen);
+int address_from_pubkey_hash(const uint8_t *public_key_hash,
+                             size_t public_key_hash_len,
+                             uint8_t *out,
+                             size_t outlen);
 
 /**
  * Derive private key given BIP32 path.
@@ -93,9 +96,9 @@ int address_from_pubkey_hash(const uint8_t *public_key_hash, size_t public_key_h
  *
  */
 int derive_private_key(cx_ecfp_private_key_t *private_key,
-                        uint8_t chain_code[static 32],
-                        const uint32_t *bip32_path,
-                        uint8_t bip32_path_len);
+                       uint8_t chain_code[static 32],
+                       const uint32_t *bip32_path,
+                       uint8_t bip32_path_len);
 
 /**
  * Turn raw public key into compressed public key.

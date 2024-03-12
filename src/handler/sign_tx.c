@@ -38,7 +38,7 @@ bool verify_change(change_output_info_t *info, tx_output_t output) {
 
     CX_CHECK(derive_private_key(&private_key, chain_code, info->path.path, info->path.length));
     CX_CHECK(init_public_key(&private_key, &public_key));
-    CX_CHECK(compress_public_key(public_key.W, sizeof(public_key.W)/sizeof(public_key.W[0])));
+    CX_CHECK(compress_public_key(public_key.W, sizeof(public_key.W) / sizeof(public_key.W[0])));
     CX_CHECK(hash160(public_key.W, 33, hash, PUBKEY_HASH_LEN));
 
 end:
@@ -47,7 +47,7 @@ end:
     explicit_bzero(&public_key, sizeof(public_key));
 
     if (error) {
-      THROW(SW_INTERNAL_ERROR);
+        THROW(SW_INTERNAL_ERROR);
     }
 
     // 0 means equals
@@ -232,9 +232,9 @@ bool sign_tx_with_key() {
     cx_err_t error = CX_OK;
 
     CX_CHECK(derive_private_key(&private_key,
-                       chain_code,
-                       G_context.bip32_path.path,
-                       G_context.bip32_path.length));
+                                chain_code,
+                                G_context.bip32_path.path,
+                                G_context.bip32_path.length));
 
     if (G_context.tx_info.sighash_all[0] == '\0') {
         // finish sha256 from data
@@ -269,12 +269,13 @@ end:
     explicit_bzero(&private_key, sizeof(private_key));
 
     if (error) {
-      return io_send_sw(SW_INTERNAL_ERROR) > 0;
+        return io_send_sw(SW_INTERNAL_ERROR) > 0;
     }
 
     // exchange signature
     // io_send_response < 0 means faillure
-    return io_send_response(&(const buffer_t){.ptr = out, .size = sig_size, .offset = 0}, SW_OK) >= 0;
+    return io_send_response(&(const buffer_t){.ptr = out, .size = sig_size, .offset = 0}, SW_OK) >=
+           0;
 }
 
 /**

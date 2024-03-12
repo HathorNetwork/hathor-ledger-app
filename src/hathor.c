@@ -30,7 +30,7 @@ int sha256d(uint8_t *in, size_t inlen, uint8_t *out, size_t outlen) {
 
 end:
     if (error != CX_OK) {
-      return 2;
+        return 2;
     }
     return 0;
 }
@@ -54,22 +54,27 @@ int hash160(uint8_t *in, size_t inlen, uint8_t *out, size_t outlen) {
 
 end:
     if (error != CX_OK) {
-      return 2;
+        return 2;
     }
     return error;
 }
 
 int compress_public_key(uint8_t *value, size_t len) {
     if ((value == NULL) || len < 65) {
-      return 1;
+        return 1;
     }
     value[0] = ((value[64] & 1) ? 0x03 : 0x02);
+    return 0;
 }
 
-int address_from_pubkey_hash(const uint8_t *public_key_hash, const size_t public_key_hash_len, uint8_t *out, size_t outlen) {
+int address_from_pubkey_hash(const uint8_t *public_key_hash,
+                             const size_t public_key_hash_len,
+                             uint8_t *out,
+                             size_t outlen) {
     uint8_t buffer[32] = {0};
-    if ((public_key_hash == NULL) || (out == NULL) || (public_key_hash_len < PUBKEY_HASH_LEN) || (outlen < 25)) {
-      return 1;
+    if ((public_key_hash == NULL) || (out == NULL) || (public_key_hash_len < PUBKEY_HASH_LEN) ||
+        (outlen < 25)) {
+        return 1;
     }
     // prepend version
     out[0] = P2PKH_VERSION_BYTE;
@@ -85,11 +90,12 @@ int address_from_pubkey(cx_ecfp_public_key_t *public_key, uint8_t *out, size_t o
     uint8_t buffer[PUBKEY_HASH_LEN] = {0};
 
     if ((public_key == NULL) || (out == NULL) || (outlen < 25)) {
-      return 1;
+        return 1;
     }
 
     // compress_public_key
-    if (compress_public_key(public_key->W, sizeof(public_key->W)/sizeof(public_key->W[0]))) return 1;
+    if (compress_public_key(public_key->W, sizeof(public_key->W) / sizeof(public_key->W[0])))
+        return 1;
     // hash160
     if (hash160(public_key->W, 33, buffer, PUBKEY_HASH_LEN)) return 1;
     // address_from_pubkey_hash
@@ -97,21 +103,17 @@ int address_from_pubkey(cx_ecfp_public_key_t *public_key, uint8_t *out, size_t o
 }
 
 int derive_private_key(cx_ecfp_private_key_t *private_key,
-                        uint8_t chain_code[static 32],
-                        const uint32_t *bip32_path,
-                        uint8_t bip32_path_len) {
+                       uint8_t chain_code[static 32],
+                       const uint32_t *bip32_path,
+                       uint8_t bip32_path_len) {
     cx_err_t error = CX_OK;
     uint8_t raw_privkey[65];
 
     if ((private_key == NULL) || (chain_code == NULL) || (bip32_path == NULL)) {
         return 1;
     }
-    // derive private key
-    if ((bip32_path_len == 0) || ((sizeof(bip32_path)/sizeof(bip32_path[0])) < bip32_path_len)) {
-        explicit_bzero(private_key, sizeof(cx_ecfp_256_private_key_t));
-        return 2;
-    }
 
+    // derive private key
     CX_CHECK(os_derive_bip32_with_seed_no_throw(HDW_NORMAL,
                                                 CX_CURVE_256K1,
                                                 bip32_path,
