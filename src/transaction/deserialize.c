@@ -10,6 +10,18 @@
 #include "../common/buffer.h"
 #include "types.h"
 
+bool is_authority_output(uint8_t token_data) {
+  return (token_data & TOKEN_DATA_AUTHORITY_MASK) > 0;
+}
+
+bool is_mint_authority(uint8_t token_data, uint64_t value) {
+  return is_authority_output(token_data) && value == MINT_AUTHORITY_MASK;
+}
+
+bool is_melt_authority(uint8_t token_data, uint64_t value) {
+  return is_authority_output(token_data) && value == MELT_AUTHORITY_MASK;
+}
+
 /**
  * XXX: considering only P2PKH, without timelock
  * Validates that a script has the format of P2PKH. Throws an exception if doesn't.
@@ -63,7 +75,7 @@ void parse_output_value(buffer_t *buf, uint64_t *value) {
     }
 }
 
-size_t parse_output(uint8_t *in, size_t inlen, tx_output_t *output) {
+size_t parse_output(uint8_t tx_version, uint8_t *in, size_t inlen, tx_output_t *output) {
     uint16_t script_len;
     buffer_t buf = {.ptr = in, .size = inlen, .offset = 0};
 
@@ -76,6 +88,9 @@ size_t parse_output(uint8_t *in, size_t inlen, tx_output_t *output) {
     if (!(buffer_read_u8(&buf, &output->token_data) && buffer_read_u16(&buf, &script_len, BE))) {
         THROW(TX_STATE_READY);
     }
+
+    // TODO: add data output validation
+
     // validate script and extract pubkey hash
     validate_p2pkh_script(&buf, script_len);
     // validate already asserted the length for this extraction

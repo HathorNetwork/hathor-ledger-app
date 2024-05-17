@@ -52,3 +52,13 @@
  * Any other means that index-1 is the index of token on the token array
  */
 #define TOKEN_DATA_INDEX_MASK 0x7Fu
+
+/**
+ * Mint authority mask
+ */
+#define MINT_AUTHORITY_MASK 0x01u
+
+/**
+ * Melt authority mask
+ */
+#define MELT_AUTHORITY_MASK 0x02u

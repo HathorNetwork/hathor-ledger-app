@@ -188,9 +188,8 @@ void read_change_info(buffer_t *cdata) {
  * The output will be on the global context for sign tx (`tx_info`)
  **/
 void read_tx_data(buffer_t *cdata) {
-    if (!(buffer_read_u16(cdata,
-                          &G_context.tx_info.tx_version,
-                          BE) &&  // read version bytes (Big Endian)
+    if (!(buffer_read_u8(cdata, &G_context.tx_info.signal_bits) && // read signal bits
+          buffer_read_u8(cdata, &G_context.tx_info.tx_version) &&  // read version bytes
           buffer_read_u8(cdata,
                          &G_context.tx_info.remaining_tokens) &&  // read number of tokens, inputs
                                                                   // and outputs, respectively
@@ -366,14 +365,12 @@ bool _decode_elements() {
 
         // read output (function is responsible to THROW if more data is required to parse the
         // output)
-        size_t output_len =
-            parse_output(G_context.tx_info.buffer, G_context.tx_info.buffer_len, &output);
+        size_t output_len = parse_output(
+            G_context.tx_info.tx_version,
+            G_context.tx_info.buffer,
+            G_context.tx_info.buffer_len,
+            &output);
 
-        // check the output token_data is correct
-        if (output.token_data & TOKEN_DATA_AUTHORITY_MASK) {
-            // authority outputs are not allowed!
-            THROW(TX_STATE_ERR);
-        }
         // We exclude the equal case since index == 0 means HTR
         if ((output.token_data & TOKEN_DATA_INDEX_MASK) > G_context.tx_info.tokens_len) {
             // index out of bounds
