@@ -12,7 +12,7 @@ fake = Faker()
 
 def test_qa_version(cmd):
     print("QA::version")
-    assert cmd.get_version() == (b'HTR', 1, 0, 0)
+    assert cmd.get_version() == (b'HTR', 1, 1, 1)
 
 
 def test_qa_address(cmd):
@@ -63,6 +63,29 @@ def test_qa_sign_tx_with_token(cmd):
     tx = Transaction(0, 1, [token.uid], inputs, outputs)
     print("QA::sign_tx_with_token::token:", str(token))
     print("QA::sign_tx_with_token::tx:", str(tx))
+    sig = cmd.sign_token_data(token)
+    # send_token_data
+    cmd.send_token_data(token, sig)
+    # sign_tx with token
+    cmd.sign_tx(tx)
+
+
+def test_qa_sign_tx_with_authority(cmd):
+    path = "m/44'/280'/0'/0/10"
+    # sign_token
+    token = fake_token()
+    inputs = [
+            TxInput(fake.sha256(True), 1, path),
+            TxInput(fake.sha256(True), 0, path),
+            ]
+    outputs = [
+            TxOutput(1, fake_script(), 1, True),
+            TxOutput(2, fake_script(), 1, True),
+            TxOutput(fake.pyint(1), fake_script()),
+            ]
+    tx = Transaction(0, 1, [token.uid], inputs, outputs)
+    print("QA::sign_tx_with_aauthority::token:", str(token))
+    print("QA::sign_tx_with_aauthority::tx:", str(tx))
     sig = cmd.sign_token_data(token)
     # send_token_data
     cmd.send_token_data(token, sig)

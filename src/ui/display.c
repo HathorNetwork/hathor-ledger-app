@@ -356,9 +356,16 @@ bool prepare_display_output() {
         g_authority[symbol_len] = ' ';
         if (is_mint_authority(output.token_data, output.value)) {
             strcpy(g_authority + symbol_len + 1, "Mint");
-        }
-        if (is_melt_authority(output.token_data, output.value)) {
-            strcpy(g_authority + symbol_len + 1, "Melt");
+        } else {
+            if (is_melt_authority(output.token_data, output.value)) {
+                strcpy(g_authority + symbol_len + 1, "Melt");
+            } else {
+                // This authority is unknown, so we treat it as invalid
+                explicit_bzero(&G_context, sizeof(G_context));
+                io_send_sw(SW_INVALID_TX);
+                ui_menu_main();
+                return true;
+            }
         }
     } else {
         g_is_authority = false;

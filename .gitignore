@@ -1,6 +1,7 @@
 # Compilation of Ledger's app
 src/glyphs.c
 src/glyphs.h
+build/
 bin/
 debug/
 dep/
