@@ -371,8 +371,7 @@ bool _decode_elements() {
 
         // read output (function is responsible to THROW if more data is required to parse the
         // output)
-        size_t output_len = parse_output(G_context.tx_info.tx_version,
-                                         G_context.tx_info.buffer,
+        size_t output_len = parse_output(G_context.tx_info.buffer,
                                          G_context.tx_info.buffer_len,
                                          &output);
 
