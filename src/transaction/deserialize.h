@@ -8,8 +8,6 @@
 /**
  * Parse raw transaction output from buffer.
  *
- * @param[in] tx_version
- *   Transaction version byte
  * @param[in] in
  *   Pointer to buffer with serialized transaction.
  * @param[in] inlen
@@ -20,7 +18,7 @@
  * @return size in bytes of the serialized output from `in`
  *
  */
-size_t parse_output(uint8_t tx_version, uint8_t *in, size_t inlen, tx_output_t *output);
+size_t parse_output(uint8_t *in, size_t inlen, tx_output_t *output);
 
 /**
  * Check if output is an authority output

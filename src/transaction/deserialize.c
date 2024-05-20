@@ -75,7 +75,7 @@ void parse_output_value(buffer_t *buf, uint64_t *value) {
     }
 }
 
-size_t parse_output(uint8_t tx_version, uint8_t *in, size_t inlen, tx_output_t *output) {
+size_t parse_output(uint8_t *in, size_t inlen, tx_output_t *output) {
     uint16_t script_len;
     buffer_t buf = {.ptr = in, .size = inlen, .offset = 0};
 
