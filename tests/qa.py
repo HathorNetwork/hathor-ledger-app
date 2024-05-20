@@ -60,7 +60,7 @@ def test_qa_sign_tx_with_token(cmd):
             TxOutput(fake.pyint(1), fake_script(), 1),
             TxOutput(fake.pyint(1), fake_script()),
             ]
-    tx = Transaction(1, [token.uid], inputs, outputs)
+    tx = Transaction(0, 1, [token.uid], inputs, outputs)
     print("QA::sign_tx_with_token::token:", str(token))
     print("QA::sign_tx_with_token::tx:", str(tx))
     sig = cmd.sign_token_data(token)

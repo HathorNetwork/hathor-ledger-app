@@ -16,7 +16,7 @@ def test_sign_tx_with_token(cmd):
         for _ in range(num + 1)
     ]
     outputs = [TxOutput(fake.pyint(1), fake_script(), x) for x in range(num + 1)]
-    tx = Transaction(1, [t.uid for t in tokens], inputs, outputs)
+    tx = Transaction(0, 1, [t.uid for t in tokens], inputs, outputs)
     print(str(tx))
     sigs = []
     for i in range(num):
