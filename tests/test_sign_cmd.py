@@ -5,7 +5,7 @@ from hathorlib.utils import get_address_from_public_key_hash, get_hash160
 
 from app_client.exception import BadStateError
 from app_client.transaction import ChangeInfo, TxInput, TxOutput
-from utils import fake_tx
+from utils import fake_script, fake_token, fake_tx
 
 fake = Faker()
 
@@ -16,8 +16,65 @@ def test_sign_tx(cmd, public_key_bytes):
         for x in range(10)
     ]
     tx = fake_tx(inputs=inputs, tokens=[])
-    signatures = cmd.sign_tx(tx)
     print("sighash_all = {}".format(tx.serialize().hex()))
+    signatures = cmd.sign_tx(tx)
+
+    for index, signature in enumerate(signatures):
+        print("verifying signature {}".format(signature.hex()))
+        tx.verify_signature(signature, public_key_bytes[index])
+
+
+def test_sign_tx_with_custom_token(cmd, public_key_bytes):
+    token1 = fake_token()
+    token2 = fake_token()
+    inputs = [
+        TxInput(fake.sha256(True), fake.pyint(0, 255), "m/44'/280'/0'/0/{}".format(x))
+        for x in range(5)
+    ]
+    outputs = [
+        TxOutput(fake.pyint(1), fake_script(), 1),
+        TxOutput(fake.pyint(1), fake_script(), 2),
+        TxOutput(fake.pyint(1), fake_script()),
+    ]
+    tx = fake_tx(inputs=inputs, outputs=outputs, tokens=[token1.uid, token2.uid])
+    print("sighash_all = {}".format(tx.serialize().hex()))
+
+    print("signing token 1 {}".format(token1))
+    sig1 = cmd.sign_token_data(token1)
+    print("signing token 2 {}".format(token2))
+    sig2 = cmd.sign_token_data(token2)
+
+    cmd.send_token_data(token1, sig1, 0)
+    cmd.send_token_data(token2, sig2, 1)
+
+    print("signing tx {}".format(tx))
+    signatures = cmd.sign_tx(tx)
+
+    for index, signature in enumerate(signatures):
+        print("verifying signature {}".format(signature.hex()))
+        tx.verify_signature(signature, public_key_bytes[index])
+
+
+def test_sign_tx_with_authority(cmd, public_key_bytes):
+    token = fake_token()
+    inputs = [
+        TxInput(fake.sha256(True), fake.pyint(0, 255), "m/44'/280'/0'/0/{}".format(x))
+        for x in range(3)
+    ]
+    outputs = [
+        TxOutput(1, fake_script(), 1, True),
+        TxOutput(2, fake_script(), 1, True),
+        TxOutput(fake.pyint(1), fake_script(), 1),
+        TxOutput(fake.pyint(1), fake_script()),
+    ]
+    tx = fake_tx(inputs=inputs, outputs=outputs, tokens=[token.uid])
+    print("sighash_all = {}".format(tx.serialize().hex()))
+
+    print("signing token {}".format(token))
+    sig = cmd.sign_token_data(token)
+    cmd.send_token_data(token, sig)
+    print("signing tx {}".format(tx))
+    signatures = cmd.sign_tx(tx)
 
     for index, signature in enumerate(signatures):
         print("verifying signature {}".format(signature.hex()))

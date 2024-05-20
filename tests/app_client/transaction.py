@@ -179,7 +179,14 @@ class Transaction:
         stokens = [token.hex() for token in self.tokens]
         sinputs = [str(inp) for inp in self.inputs]
         soutputs = [str(outp) for outp in self.outputs]
-        return f"Transaction(tx_version={self.tx_version}, tokens={stokens}, inputs={sinputs}, outputs={soutputs}, signal_bits={self.signal_bits})"
+        return (
+            "Transaction("
+            f"tx_version={self.tx_version}, "
+            f"tokens={stokens}, "
+            f"inputs={sinputs}, "
+            f"outputs={soutputs}, "
+            f"signal_bits={self.signal_bits})"
+        )
 
     def verify_signature(self, signature: bytes, public_key_bytes: bytes):
         """Verify signature from `self.serialize` that returns the sighash_all bytes

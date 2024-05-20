@@ -361,6 +361,7 @@ bool prepare_display_output() {
                 strcpy(g_authority + symbol_len + 1, "Melt");
             } else {
                 // This authority is unknown, so we treat it as invalid
+                PRINTF("[-] Unknown authority received in value %d\n", output.value);
                 explicit_bzero(&G_context, sizeof(G_context));
                 io_send_sw(SW_INVALID_TX);
                 ui_menu_main();
