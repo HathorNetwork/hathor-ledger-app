@@ -371,9 +371,8 @@ bool _decode_elements() {
 
         // read output (function is responsible to THROW if more data is required to parse the
         // output)
-        size_t output_len = parse_output(G_context.tx_info.buffer,
-                                         G_context.tx_info.buffer_len,
-                                         &output);
+        size_t output_len =
+            parse_output(G_context.tx_info.buffer, G_context.tx_info.buffer_len, &output);
 
         // We exclude the equal case since index == 0 means HTR
         if ((output.token_data & TOKEN_DATA_INDEX_MASK) > G_context.tx_info.tokens_len) {
