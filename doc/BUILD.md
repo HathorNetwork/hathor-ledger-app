@@ -8,20 +8,29 @@ All dev commands are configured on a separate `.dev.Makefile`.
 ## Dev-env
 
 This command will start a docker container with the configured dev-env where you can run any commands on the `Makefile` or the SDK, like [loading](https://developers.ledger.com/docs/nano-app/load/) the app on Nano S.
-`make -f .dev.Makefile builder`
+
+
+```bash
+make -f .dev.Makefile builder
+```
 
 ## Compilation
 
-`make -f .dev.Makefile build`
+```bash
+make -f .dev.Makefile build
+```
 
 You can add the flag `DEBUG=1` at the end to compile on debug mode.
 
 To remove all files generated from the build process run:
-`make -f .dev.Makefile clean`
+```bash
+make -f .dev.Makefile clean
+```
 
 ## Linter
 
 Build linter with `make -f .dev.Makefile lint-build` and you can use the same linter (and linter configurations) as the CI using the commands:
+
 - `make -f .dev.Makefile lint`
 - `make -f .dev.Makefile lint-fix`
 
