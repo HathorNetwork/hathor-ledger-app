@@ -259,6 +259,13 @@ bool skip_change_outputs() {
     inplace_selection_sort((size_t) G_context.tx_info.change_len, change_indices);
 
     for (uint8_t i = 0; i < G_context.tx_info.change_len; i++) {
+        // current_output is the number of parsed outputs
+        // If it is the same as confirmed_outputs we have confirmed all parsed outputs
+        if (G_context.tx_info.confirmed_outputs >= G_context.tx_info.current_output) {
+            // We have confirmed all parsed outputs, we need to request more before continuiing
+            if (check_output_index_state()) return true;
+        }
+
         if (G_context.tx_info.confirmed_outputs == change_indices[i]) {
             // we are on a change index
             G_context.tx_info.display_index++;
@@ -338,6 +345,7 @@ void ui_confirm_output(bool choice) {
         G_context.tx_info.confirmed_outputs++;
         // return if we are requesting more data or we have confirmed all outputs
         if (skip_change_outputs()) return;
+
         // Show next output from buffer
         ui_display_tx_outputs();
     } else {
