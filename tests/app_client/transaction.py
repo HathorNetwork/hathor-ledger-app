@@ -193,11 +193,7 @@ class ChangeInfo:
         self.path = path
 
     def __str__(self):
-        return (
-            "ChangeInfo("
-            f"output_index={self.output_index}, "
-            f"path={self.path})"
-        )
+        return f"ChangeInfo(output_index={self.output_index}, path={self.path})"
 
     @property
     def bip32_path(self) -> List[bytes]:
