@@ -259,6 +259,13 @@ bool skip_change_outputs() {
     inplace_selection_sort((size_t) G_context.tx_info.change_len, change_indices);
 
     for (uint8_t i = 0; i < G_context.tx_info.change_len; i++) {
+        // current_output is the number of parsed outputs
+        // If it is the same as confirmed_outputs we have confirmed all parsed outputs
+        if (G_context.tx_info.confirmed_outputs >= G_context.tx_info.current_output) {
+            // We have confirmed all parsed outputs, we need to request more before continuiing
+            THROW(TX_STATE_READY);
+        }
+
         if (G_context.tx_info.confirmed_outputs == change_indices[i]) {
             // we are on a change index
             G_context.tx_info.display_index++;
