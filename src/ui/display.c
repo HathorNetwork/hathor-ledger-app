@@ -263,7 +263,7 @@ bool skip_change_outputs() {
         // If it is the same as confirmed_outputs we have confirmed all parsed outputs
         if (G_context.tx_info.confirmed_outputs >= G_context.tx_info.current_output) {
             // We have confirmed all parsed outputs, we need to request more before continuiing
-            THROW(TX_STATE_READY);
+            return true;
         }
 
         if (G_context.tx_info.confirmed_outputs == change_indices[i]) {
@@ -344,7 +344,10 @@ void ui_confirm_output(bool choice) {
         G_context.tx_info.display_index++;
         G_context.tx_info.confirmed_outputs++;
         // return if we are requesting more data or we have confirmed all outputs
-        if (skip_change_outputs()) return;
+        if (skip_change_outputs()) {
+            // Since this runs on the user callback we need to manually return a code
+            io_send_sw(SW_OK);
+        };
         // Show next output from buffer
         ui_display_tx_outputs();
     } else {
