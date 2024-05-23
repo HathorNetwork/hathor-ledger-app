@@ -3,9 +3,9 @@ from faker import Faker
 from hathorlib.scripts import P2PKH
 from hathorlib.utils import get_address_from_public_key_hash, get_hash160
 
-from app_client.transaction import ChangeInfo, TxInput, TxOutput
 from app_client.exception import TxInvalidError
-from utils import fake_path, fake_tx, fake_script
+from app_client.transaction import ChangeInfo, TxInput, TxOutput
+from utils import fake_path, fake_script, fake_tx
 
 fake = Faker()
 
@@ -55,16 +55,14 @@ def test_more_change_than_outputs(cmd, public_key_bytes):
         ChangeInfo(change_index, "m/44'/280'/0'/0/{}".format(change_index))
         for change_index in change_indices
     ]
-    outputs = [
-        TxOutput(fake.pyint(1), fake_script())
-        for x in range(3)
-    ]
+    outputs = [TxOutput(fake.pyint(1), fake_script()) for x in range(3)]
     print([str(x) for x in change_list])
     tx = fake_tx(outputs=outputs, tokens=[])
     print("sighash_all = {}".format(tx.serialize().hex()))
     print("signing tx {}".format(tx))
-    with pytest.raises(TxInvalidError) as e_info:
+    with pytest.raises(TxInvalidError):
         cmd.sign_tx(tx, change_list=change_list, use_old_protocol=False)
+
 
 def test_duplicate_change(cmd, public_key_bytes):
     """
@@ -76,13 +74,10 @@ def test_duplicate_change(cmd, public_key_bytes):
         ChangeInfo(change_index, "m/44'/280'/0'/0/{}".format(change_index))
         for change_index in change_indices
     ]
-    outputs = [
-        TxOutput(fake.pyint(1), fake_script())
-        for x in range(3)
-    ]
+    outputs = [TxOutput(fake.pyint(1), fake_script()) for x in range(3)]
     print([str(x) for x in change_list])
     tx = fake_tx(outputs=outputs, tokens=[])
     print("sighash_all = {}".format(tx.serialize().hex()))
     print("signing tx {}".format(tx))
-    with pytest.raises(TxInvalidError) as e_info:
+    with pytest.raises(TxInvalidError):
         cmd.sign_tx(tx, change_list=change_list, use_old_protocol=False)

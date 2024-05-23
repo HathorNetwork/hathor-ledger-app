@@ -187,7 +187,7 @@ uint16_t read_change_info(buffer_t *cdata) {
 
     // Protocol v1
     if (proto_version == 1) {
-      return read_change_info_v1(cdata);
+        return read_change_info_v1(cdata);
     }
 
     // error, unknown change protocol
