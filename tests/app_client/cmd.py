@@ -169,7 +169,11 @@ class Command:
     def send_token_data_list(self, tokens: List[Token], signatures: List[bytes]):
         assert len(tokens) == len(signatures)
         for i, token in enumerate(tokens):
-            print("[+] sending: send_token_data_list request for token {} - {}".format(i, token))
+            print(
+                "[+] sending: send_token_data_list request for token {} - {}".format(
+                    i, token
+                )
+            )
             self.send_token_data(token, signatures[i], num=i)
 
     def verify_token_signature(self, token: Token, signature: bytes):
