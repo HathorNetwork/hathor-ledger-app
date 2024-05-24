@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Changed
 
 - Signal bits and version parsed separetely, version is now uint8_t instead of uint16_t.
+- In sign tx command we check that change output index is valid (inside the output array) and not repeated.
+
+## Fixed
+
+- Auto confirmation of unreceived change outputs would fail tx signing
+- Some parsing errors would not clean the global context, it could fail the next command.
 
 ## [1.1.1] - 2024-03-12
 
