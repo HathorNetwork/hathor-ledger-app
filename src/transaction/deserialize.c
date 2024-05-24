@@ -88,9 +88,6 @@ size_t parse_output(uint8_t *in, size_t inlen, tx_output_t *output) {
     if (!(buffer_read_u8(&buf, &output->token_data) && buffer_read_u16(&buf, &script_len, BE))) {
         THROW(TX_STATE_READY);
     }
-
-    // TODO: add data output validation
-
     // validate script and extract pubkey hash
     validate_p2pkh_script(&buf, script_len);
     // validate already asserted the length for this extraction
