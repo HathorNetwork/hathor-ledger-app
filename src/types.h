@@ -102,7 +102,8 @@ typedef struct {
     uint8_t change_output_index;
     bip32_path_t change_bip32_path;
     // tx
-    uint16_t tx_version;
+    uint8_t signal_bits;
+    uint8_t tx_version;
     uint8_t remaining_tokens;
     uint8_t remaining_inputs;
     uint8_t outputs_len;

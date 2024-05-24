@@ -34,3 +34,11 @@ class Token:
             cdata = b"".join([cdata, signature])
 
         return cdata
+
+    def __str__(self):
+        return (
+            "Token("
+            f"symbol={self.symbol}, "
+            f"name={self.name}, "
+            f"uid={self.uid_hex})"
+        )

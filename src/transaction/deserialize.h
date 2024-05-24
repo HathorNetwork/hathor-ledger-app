@@ -20,4 +20,36 @@
  */
 size_t parse_output(uint8_t *in, size_t inlen, tx_output_t *output);
 
+/**
+ * Check if output is an authority output
+ *
+ * @param[in] token_data
+ *   Token data
+ *
+ * @return true if output is an authority output
+ */
+bool is_authority_output(uint8_t token_data);
+
+/**
+ * Check if output is a mint authority
+ *
+ * @param[in] token_data
+ *   Token data
+ * @param[in] value
+ *   Value
+ * @return true if output is a mint authority
+ */
+bool is_mint_authority(uint8_t token_data, uint64_t value);
+
+/**
+ * Check if output is a melt authority
+ *
+ * @param[in] token_data
+ *   Token data
+ * @param[in] value
+ *   Value
+ * @return true if output is a melt authority
+ */
+bool is_melt_authority(uint8_t token_data, uint64_t value);
+
 #endif

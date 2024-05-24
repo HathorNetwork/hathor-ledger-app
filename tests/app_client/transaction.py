@@ -103,11 +103,13 @@ class TxOutput:
 class Transaction:
     def __init__(
         self,
-        tx_version,
+        signal_bits: int,
+        tx_version: int,
         tokens: List[bytes],
         inputs: List[TxInput],
         outputs: List[TxOutput],
     ) -> None:
+        self.signal_bits = signal_bits
         self.tx_version = tx_version
         self.tokens = tokens
         self.inputs = inputs
@@ -123,7 +125,8 @@ class Transaction:
 
         cdata = b"".join(
             [
-                self.tx_version.to_bytes(2, byteorder="big"),
+                self.signal_bits.to_bytes(1, byteorder="big"),
+                self.tx_version.to_bytes(1, byteorder="big"),
                 len(self.tokens).to_bytes(1, byteorder="big"),
                 len(self.inputs).to_bytes(1, byteorder="big"),
                 len(self.outputs).to_bytes(1, byteorder="big"),
@@ -148,7 +151,8 @@ class Transaction:
     def from_bytes(cls, hexa: Union[bytes, BytesIO]):
         buf: BytesIO = BytesIO(hex) if isinstance(hexa, bytes) else hexa
 
-        tx_version: int = read_uint(buf, 16, byteorder="big")
+        signal_bits: int = read_uint(buf, 8, byteorder="big")
+        tx_version: int = read_uint(buf, 8, byteorder="big")
         num_tokens: int = read_uint(buf, 8, byteorder="big")
         num_inputs: int = read_uint(buf, 8, byteorder="big")
         num_outputs: int = read_uint(buf, 8, byteorder="big")
@@ -169,13 +173,20 @@ class Transaction:
             tx_output = TxOutput.from_bytes(output_bytes)
             outputs.append(tx_output)
 
-        return cls(tx_version, tokens, inputs, outputs)
+        return cls(signal_bits, tx_version, tokens, inputs, outputs)
 
     def __str__(self):
         stokens = [token.hex() for token in self.tokens]
         sinputs = [str(inp) for inp in self.inputs]
         soutputs = [str(outp) for outp in self.outputs]
-        return f"Transaction(tokens={stokens}, inputs={sinputs}, outputs={soutputs})"
+        return (
+            "Transaction("
+            f"tx_version={self.tx_version}, "
+            f"tokens={stokens}, "
+            f"inputs={sinputs}, "
+            f"outputs={soutputs}, "
+            f"signal_bits={self.signal_bits})"
+        )
 
     def verify_signature(self, signature: bytes, public_key_bytes: bytes):
         """Verify signature from `self.serialize` that returns the sighash_all bytes

@@ -10,6 +10,18 @@
 #include "../common/buffer.h"
 #include "types.h"
 
+bool is_authority_output(uint8_t token_data) {
+    return (token_data & TOKEN_DATA_AUTHORITY_MASK) > 0;
+}
+
+bool is_mint_authority(uint8_t token_data, uint64_t value) {
+    return is_authority_output(token_data) && value == MINT_AUTHORITY_MASK;
+}
+
+bool is_melt_authority(uint8_t token_data, uint64_t value) {
+    return is_authority_output(token_data) && value == MELT_AUTHORITY_MASK;
+}
+
 /**
  * XXX: considering only P2PKH, without timelock
  * Validates that a script has the format of P2PKH. Throws an exception if doesn't.

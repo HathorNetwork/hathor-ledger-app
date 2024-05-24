@@ -40,7 +40,7 @@ def fake_tx(
         else tokens
     )
 
-    return Transaction(1, tkns, tx_inps, tx_outps)
+    return Transaction(0, 1, tkns, tx_inps, tx_outps)
 
 
 def fake_token():

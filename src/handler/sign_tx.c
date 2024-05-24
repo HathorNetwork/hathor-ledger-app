@@ -168,6 +168,7 @@ void read_change_info(buffer_t *cdata) {
             read_change_info_v1(cdata);
         } else {
             // error
+            PRINTF("[-] sign-tx: Unknown change protocol version: %d\n", proto_version);
             THROW(SW_INVALID_TX);
         }
     }
@@ -188,9 +189,8 @@ void read_change_info(buffer_t *cdata) {
  * The output will be on the global context for sign tx (`tx_info`)
  **/
 void read_tx_data(buffer_t *cdata) {
-    if (!(buffer_read_u16(cdata,
-                          &G_context.tx_info.tx_version,
-                          BE) &&  // read version bytes (Big Endian)
+    if (!(buffer_read_u8(cdata, &G_context.tx_info.signal_bits) &&  // read signal bits
+          buffer_read_u8(cdata, &G_context.tx_info.tx_version) &&   // read version bytes
           buffer_read_u8(cdata,
                          &G_context.tx_info.remaining_tokens) &&  // read number of tokens, inputs
                                                                   // and outputs, respectively
@@ -329,7 +329,11 @@ bool _decode_elements() {
 
         // check uid is on registry
         int8_t registry_index = find_token_registry_index(uid);
-        if (registry_index == -1) THROW(TX_STATE_ERR);  // not on registry, token MUST be verified
+        if (registry_index == -1) {
+            // not on registry, token MUST be verified
+            PRINTF("[-] sign-tx: Token UID not on registry\n");
+            THROW(TX_STATE_ERR);
+        }
         G_context.tx_info.tokens[G_context.tx_info.tokens_len++] =
             &G_token_symbols.tokens[registry_index];
 
@@ -349,6 +353,7 @@ bool _decode_elements() {
         // Check data_len
         uint16_t input_data_len = read_u16_be(G_context.tx_info.buffer, 33);
         if (input_data_len > 0) {
+            PRINTF("[-] sign-tx: Received a non-zero input data length (%d)\n", input_data_len);
             THROW(TX_STATE_ERR);
         }
 
@@ -369,14 +374,12 @@ bool _decode_elements() {
         size_t output_len =
             parse_output(G_context.tx_info.buffer, G_context.tx_info.buffer_len, &output);
 
-        // check the output token_data is correct
-        if (output.token_data & TOKEN_DATA_AUTHORITY_MASK) {
-            // authority outputs are not allowed!
-            THROW(TX_STATE_ERR);
-        }
         // We exclude the equal case since index == 0 means HTR
         if ((output.token_data & TOKEN_DATA_INDEX_MASK) > G_context.tx_info.tokens_len) {
             // index out of bounds
+            PRINTF("[-] sign-tx: Invalid token index (%d), only have %d on registry\n",
+                   output.token_data & TOKEN_DATA_INDEX_MASK,
+                   G_context.tx_info.tokens_len);
             THROW(TX_STATE_ERR);
         }
 
@@ -394,6 +397,9 @@ bool _decode_elements() {
                 if (output.index == info->index) {
                     // verify change output is going to user's wallet
                     if (!verify_change(info, output)) {
+                        PRINTF("[-] sign-tx: Invalid change output (index=%d, token_data=%d)\n",
+                               output.index,
+                               output.token_data);
                         THROW(TX_STATE_ERR);
                     }
                 }
@@ -413,6 +419,7 @@ bool _decode_elements() {
         G_context.tx_info.outputs[G_context.tx_info.buffer_output_len++] = output;
     } else {
         // We've reached the end of what we should read but the buffer isn't empty
+        PRINTF("[-] sign-tx: Received more data than expected\n");
         THROW(TX_STATE_ERR);
     }
 
@@ -501,6 +508,7 @@ bool receive_data(buffer_t *cdata, uint8_t chunk) {
 
     switch (decode_elements()) {
         case TX_STATE_ERR:
+            PRINTF("[-] sign-tx: Invalid TX received\n");
             explicit_bzero(&G_context, sizeof(G_context));
             io_send_sw(SW_INVALID_TX);
             ui_menu_main();
