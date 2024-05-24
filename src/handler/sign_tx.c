@@ -222,8 +222,19 @@ uint16_t read_tx_data(buffer_t *cdata) {
         return SW_WRONG_DATA_LENGTH;
     }
 
+    for (uint8_t i = 0; i < G_context.tx_info.change_len; i++) {
+        // check that all change indexes are inside the outputs array
+        if (G_context.tx_info.change_info[i].index >= G_context.tx_info.outputs_len) {
+            PRINTF("[-] [sign_tx] Change output index %d cannot be an output since length is %d\n",
+                   G_context.tx_info.change_info[i].index,
+                   G_context.tx_info.outputs_len);
+            return SW_INVALID_TX;
+        }
+    }
     if (G_context.tx_info.change_len > G_context.tx_info.outputs_len) {
         // We have more change indexes than outputs, meaning the change list is malformed
+        // This is unreachable since we do not allow duplicates and no index is higher than the
+        // number of outputs even so we should check for this.
         PRINTF("[-] [sign_tx] More change indexes than outputs\n");
         return SW_INVALID_TX;
     }
