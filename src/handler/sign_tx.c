@@ -64,6 +64,8 @@ end:
  *      - read the bip32 path
  *
  * The outputs will be on the global context for sign tx (`tx_info`)
+ *
+ * returns a 16 bit error code if it fails and 0 on success
  **/
 uint16_t read_change_info_v1(buffer_t *cdata) {
     if (!buffer_read_u8(cdata, &G_context.tx_info.change_len)) {
@@ -117,6 +119,8 @@ uint16_t read_change_info_v1(buffer_t *cdata) {
  *      - read the bip32 path
  *
  * The outputs will be on the global context for sign tx (`tx_info`)
+ *
+ * returns a 16 bit error code if it fails and 0 on success
  **/
 uint16_t read_change_info_old_protocol(uint8_t change_byte, buffer_t *cdata) {
     uint8_t buffer[1 + 4 * MAX_BIP32_PATH] = {0};
@@ -159,6 +163,8 @@ uint16_t read_change_info_old_protocol(uint8_t change_byte, buffer_t *cdata) {
  *
  * First byte is the version byte for the protocol (for transactions)
  * It will be used to differentiate the old and new protocols
+ *
+ * returns a 16 bit error code if it fails and 0 on success
  **/
 uint16_t read_change_info(buffer_t *cdata) {
     uint8_t proto_version;
@@ -208,6 +214,8 @@ uint16_t read_change_info(buffer_t *cdata) {
  * Obs: This is only on the first call with chunk=0, so it should never fail for lack of data
  *
  * The output will be on the global context for sign tx (`tx_info`)
+ *
+ * returns a 16 bit error code if it fails and 0 on success
  **/
 uint16_t read_tx_data(buffer_t *cdata) {
     if (!(buffer_read_u16(cdata,
