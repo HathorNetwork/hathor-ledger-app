@@ -32,7 +32,7 @@ def test_sign_tx_change_old_protocol(cmd, public_key_bytes):
         )
         for x in range(5)
     ]
-    change_index = fake.pyint(0, 5)
+    change_index = fake.pyint(0, 4)
     change_list = [ChangeInfo(change_index, "m/44'/280'/0'/0/{}".format(change_index))]
     print([str(x) for x in change_list])
     tx = fake_tx(outputs=outputs, tokens=[])

@@ -64,30 +64,49 @@ end:
  *      - read the bip32 path
  *
  * The outputs will be on the global context for sign tx (`tx_info`)
+ *
+ * returns a 16 bit error code if it fails and 0 on success
  **/
-void read_change_info_v1(buffer_t *cdata) {
+uint16_t read_change_info_v1(buffer_t *cdata) {
     if (!buffer_read_u8(cdata, &G_context.tx_info.change_len)) {
-        THROW(SW_WRONG_DATA_LENGTH);
+        return SW_WRONG_DATA_LENGTH;
     }
 
     if (G_context.tx_info.change_len > TX_MAX_TOKENS + 1) {
         // Some token change is duplicated or we have more tokens than allowed
-        THROW(SW_WRONG_DATA_LENGTH);
+        return SW_WRONG_DATA_LENGTH;
     }
+
+    // TX_MAX_TOKENS + 1 because we allow 1 change for each token + HTR
+    uint8_t known_indexes[TX_MAX_TOKENS + 1] = {0};
+    uint8_t indexes_len = 0;
 
     for (uint8_t i = 0; i < G_context.tx_info.change_len; i++) {
         change_output_info_t *info = &G_context.tx_info.change_info[i];
 
         // 1 byte for change output index
         if (!buffer_read_u8(cdata, &info->index)) {
-            THROW(SW_WRONG_DATA_LENGTH);
+            return SW_WRONG_DATA_LENGTH;
         }
+
+        // check for duplicates
+        for (uint8_t j = 0; j < indexes_len; j++) {
+            if (info->index == known_indexes[j]) {
+                // This output index was already read
+                // This can happen if the change list is malformed.
+                PRINTF("[-] [sign_tx] Duplicate change output index %d\n", info->index);
+                return SW_INVALID_TX;
+            }
+        }
+        known_indexes[indexes_len++] = info->index;
 
         // bip32 path (path length + path data)
         if (!buffer_read_bip32_path(cdata, &info->path)) {
-            THROW(SW_WRONG_DATA_LENGTH);
+            return SW_WRONG_DATA_LENGTH;
         }
     }
+
+    return 0;
 }
 
 /**
@@ -100,8 +119,10 @@ void read_change_info_v1(buffer_t *cdata) {
  *      - read the bip32 path
  *
  * The outputs will be on the global context for sign tx (`tx_info`)
+ *
+ * returns a 16 bit error code if it fails and 0 on success
  **/
-void read_change_info_old_protocol(uint8_t change_byte, buffer_t *cdata) {
+uint16_t read_change_info_old_protocol(uint8_t change_byte, buffer_t *cdata) {
     uint8_t buffer[1 + 4 * MAX_BIP32_PATH] = {0};
     // Old protocol only allow 1 change output
     // and we already checked that there is an output present
@@ -109,18 +130,18 @@ void read_change_info_old_protocol(uint8_t change_byte, buffer_t *cdata) {
     change_output_info_t *info = &G_context.tx_info.change_info[0];
 
     if (!buffer_read_u8(cdata, &info->index)) {
-        THROW(SW_WRONG_DATA_LENGTH);
+        return SW_WRONG_DATA_LENGTH;
     }
 
     buffer[0] = change_byte & 0x0F;
 
     // validate that the path length is valid
     if (buffer[0] > MAX_BIP32_PATH) {
-        THROW(SW_WRONG_DATA_LENGTH);
+        return SW_WRONG_DATA_LENGTH;
     }
     // check we have enough data to read the path
     if (cdata->size - cdata->offset < 4 * buffer[0]) {
-        THROW(SW_WRONG_DATA_LENGTH);
+        return SW_WRONG_DATA_LENGTH;
     }
 
     // buffer+1 has 4*MAX_BIP32_PATH capacity
@@ -131,8 +152,10 @@ void read_change_info_old_protocol(uint8_t change_byte, buffer_t *cdata) {
 
     // bip32 path (path length + path data)
     if (!buffer_read_bip32_path(&bufdata, &info->path)) {
-        THROW(SW_WRONG_DATA_LENGTH);
+        return SW_WRONG_DATA_LENGTH;
     }
+
+    return 0;
 }
 
 /**
@@ -140,11 +163,13 @@ void read_change_info_old_protocol(uint8_t change_byte, buffer_t *cdata) {
  *
  * First byte is the version byte for the protocol (for transactions)
  * It will be used to differentiate the old and new protocols
+ *
+ * returns a 16 bit error code if it fails and 0 on success
  **/
-void read_change_info(buffer_t *cdata) {
+uint16_t read_change_info(buffer_t *cdata) {
     uint8_t proto_version;
     if (!buffer_read_u8(cdata, &proto_version)) {
-        THROW(SW_WRONG_DATA_LENGTH);
+        return SW_WRONG_DATA_LENGTH;
     }
 
     // check first byte for backwards compatibility
@@ -158,19 +183,22 @@ void read_change_info(buffer_t *cdata) {
     if (proto_version == 0) {
         // old protocol, no change
         G_context.tx_info.change_len = 0;
-        return;
+        return 0;
     }
 
+    // Old protocol with change
     if (proto_version & 0x80) {
-        read_change_info_old_protocol(proto_version, cdata);
-    } else {
-        if (proto_version == 1) {
-            read_change_info_v1(cdata);
-        } else {
-            // error
-            THROW(SW_INVALID_TX);
-        }
+        return read_change_info_old_protocol(proto_version, cdata);
     }
+
+    // Protocol v1
+    if (proto_version == 1) {
+        return read_change_info_v1(cdata);
+    }
+
+    // error, unknown change protocol
+    PRINTF("[-] [sign_tx] Unknown change protocol version %d\n", proto_version);
+    return SW_INVALID_TX;
 }
 
 /**
@@ -186,8 +214,10 @@ void read_change_info(buffer_t *cdata) {
  * Obs: This is only on the first call with chunk=0, so it should never fail for lack of data
  *
  * The output will be on the global context for sign tx (`tx_info`)
+ *
+ * returns a 16 bit error code if it fails and 0 on success
  **/
-void read_tx_data(buffer_t *cdata) {
+uint16_t read_tx_data(buffer_t *cdata) {
     if (!(buffer_read_u16(cdata,
                           &G_context.tx_info.tx_version,
                           BE) &&  // read version bytes (Big Endian)
@@ -197,8 +227,27 @@ void read_tx_data(buffer_t *cdata) {
           buffer_read_u8(cdata, &G_context.tx_info.remaining_inputs) &&
           buffer_read_u8(cdata, &G_context.tx_info.outputs_len))) {
         // if an error occurs reading
-        THROW(SW_WRONG_DATA_LENGTH);
+        return SW_WRONG_DATA_LENGTH;
     }
+
+    for (uint8_t i = 0; i < G_context.tx_info.change_len; i++) {
+        // check that all change indexes are inside the outputs array
+        if (G_context.tx_info.change_info[i].index >= G_context.tx_info.outputs_len) {
+            PRINTF("[-] [sign_tx] Change output index %d cannot be an output since length is %d\n",
+                   G_context.tx_info.change_info[i].index,
+                   G_context.tx_info.outputs_len);
+            return SW_INVALID_TX;
+        }
+    }
+    if (G_context.tx_info.change_len > G_context.tx_info.outputs_len) {
+        // We have more change indexes than outputs, meaning the change list is malformed
+        // This is unreachable since we do not allow duplicates and no index is higher than the
+        // number of outputs even so we should check for this.
+        PRINTF("[-] [sign_tx] More change indexes than outputs\n");
+        return SW_INVALID_TX;
+    }
+
+    return 0;
 }
 
 /**
@@ -474,13 +523,23 @@ bool receive_data(buffer_t *cdata, uint8_t chunk) {
         }
 
         init_sign_tx_ctx();
+        uint16_t error_code = 0;
         // read change output and sighash
-        read_change_info(cdata);
+        error_code = read_change_info(cdata);
+        if (error_code != 0) {
+            explicit_bzero(&G_context, sizeof(G_context));
+            THROW(error_code);
+        }
         // sighash_all_hash won't move cdata.offset
         sighash_all_hash(cdata);
-        read_tx_data(cdata);
+        error_code = read_tx_data(cdata);
+        if (error_code != 0) {
+            explicit_bzero(&G_context, sizeof(G_context));
+            THROW(error_code);
+        }
 
         if (!buffer_copy(cdata, G_context.tx_info.buffer, 300 - G_context.tx_info.buffer_len)) {
+            explicit_bzero(&G_context, sizeof(G_context));
             THROW(SW_WRONG_DATA_LENGTH);
         }
 
@@ -494,6 +553,7 @@ bool receive_data(buffer_t *cdata, uint8_t chunk) {
         if (!buffer_copy(cdata,
                          G_context.tx_info.buffer + G_context.tx_info.buffer_len,
                          300 - G_context.tx_info.buffer_len)) {
+            explicit_bzero(&G_context, sizeof(G_context));
             THROW(SW_WRONG_DATA_LENGTH);
         }
         G_context.tx_info.buffer_len += cdata->size - cdata->offset;
