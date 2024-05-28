@@ -301,11 +301,22 @@ bool prepare_display_output() {
     memset(g_address, 0, sizeof(g_address));
     char b58address[B58_ADDRESS_LEN] = {0};
     uint8_t address[ADDRESS_LEN] = {0};
-    if (address_from_pubkey_hash(output.script.hash, PUBKEY_HASH_LEN, address, ADDRESS_LEN)) {
-        explicit_bzero(&G_context, sizeof(G_context));
-        io_send_sw(SW_INTERNAL_ERROR);
-        ui_menu_main();
-        return true;
+    if (output.script.type == SCRIPT_P2PKH) {
+        if (address_from_pubkey_hash(output.script.hash, PUBKEY_HASH_LEN, address, ADDRESS_LEN)) {
+            explicit_bzero(&G_context, sizeof(G_context));
+            io_send_sw(SW_INTERNAL_ERROR);
+            ui_menu_main();
+            return true;
+        }
+    } else if (output.script.type == SCRIPT_P2SH) {
+        if (address_from_script_hash(output.script.hash, PUBKEY_HASH_LEN, address, ADDRESS_LEN)) {
+            explicit_bzero(&G_context, sizeof(G_context));
+            io_send_sw(SW_INTERNAL_ERROR);
+            ui_menu_main();
+            return true;
+        }
+    } else {
+        // Output cannot be formatted with an address, this is invalid.
     }
     base58_encode(address, ADDRESS_LEN, b58address, B58_ADDRESS_LEN);
     memmove(g_address, b58address, B58_ADDRESS_LEN);
