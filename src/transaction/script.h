@@ -2,7 +2,7 @@
 #define TX_SCRIPT_H
 
 #define ERR_UNSUPPORTED_SCRIPT 0xB101
-#define ERR_INVALID_ARGS 0xB102
+#define ERR_INVALID_ARGS       0xB102
 
 #include <stdint.h>
 #include "../common/buffer.h"

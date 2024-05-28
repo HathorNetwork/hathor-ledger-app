@@ -39,8 +39,8 @@ typedef enum {
  * Output script info
  */
 typedef struct {
-  script_type_t type;
-  uint8_t hash[PUBKEY_HASH_LEN];
+    script_type_t type;
+    uint8_t hash[PUBKEY_HASH_LEN];  // hash160 of pubkey
 } output_script_info_t;
 
 /**
@@ -51,5 +51,4 @@ typedef struct {
     uint64_t value;
     uint8_t token_data;
     output_script_info_t script;
-    uint8_t pubkey_hash[PUBKEY_HASH_LEN];  // hash160 of pubkey
 } tx_output_t;
