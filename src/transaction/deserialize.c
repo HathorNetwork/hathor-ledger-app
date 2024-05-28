@@ -1,5 +1,5 @@
 #include <stdbool.h>  // bool
-#include <string.h>   // memset, explicit_bzero, memmove
+#include <string.h>   // memmove
 
 #include "deserialize.h"
 
@@ -9,6 +9,7 @@
 #include "constants.h"
 #include "../common/buffer.h"
 #include "types.h"
+#include "script.h"
 
 /**
  * XXX: considering only P2PKH, without timelock
@@ -76,10 +77,18 @@ size_t parse_output(uint8_t *in, size_t inlen, tx_output_t *output) {
     if (!(buffer_read_u8(&buf, &output->token_data) && buffer_read_u16(&buf, &script_len, BE))) {
         THROW(TX_STATE_READY);
     }
-    // validate script and extract pubkey hash
-    validate_p2pkh_script(&buf, script_len);
-    // validate already asserted the length for this extraction
-    memmove(output->pubkey_hash, buf.ptr + buf.offset + 3, PUBKEY_HASH_LEN);
+
+    // parse script
+    uint16_t err = parse_output_script(&buf, script_len, &output->script);
+    if (err == ERR_MORE_DATA_REQUIRED) {
+        // More data is required to parse the script
+        THROW(TX_STATE_READY);
+    }
+    if (err) {
+        PRINTF("Error parsing output script: %d\n", err);
+        THROW(err);
+    }
+
     if (!buffer_seek_cur(&buf, script_len)) {
         THROW(SW_TX_PARSING_FAIL);
     }

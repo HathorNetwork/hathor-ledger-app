@@ -26,11 +26,29 @@ typedef enum {
 } sing_tx_stage_e;
 
 /**
+ * Script types
+ */
+typedef enum {
+    SCRIPT_UNKNOWN = 0,
+    SCRIPT_P2PKH = 1,
+    SCRIPT_P2SH = 2,
+    SCRIPT_DATA = 3,
+} script_type_t;
+
+/**
+ * Output script info
+ */
+typedef struct {
+    script_type_t type;
+    uint8_t hash[PUBKEY_HASH_LEN];  // hash160 of pubkey
+} output_script_info_t;
+
+/**
  * Structure for transaction output
  */
 typedef struct {
     uint8_t index;
     uint64_t value;
     uint8_t token_data;
-    uint8_t pubkey_hash[PUBKEY_HASH_LEN];  // hash160 of pubkey
+    output_script_info_t script;
 } tx_output_t;

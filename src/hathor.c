@@ -67,18 +67,18 @@ int compress_public_key(uint8_t *value, size_t len) {
     return 0;
 }
 
-int address_from_pubkey_hash(const uint8_t *public_key_hash,
-                             const size_t public_key_hash_len,
-                             uint8_t *out,
-                             size_t outlen) {
+int address_from_hash(const uint8_t *hash,
+                      const size_t hashlen,
+                      const uint8_t version_byte,
+                      uint8_t *out,
+                      size_t outlen) {
     uint8_t buffer[32] = {0};
-    if ((public_key_hash == NULL) || (out == NULL) || (public_key_hash_len < PUBKEY_HASH_LEN) ||
-        (outlen < 25)) {
+    if ((hash == NULL) || (out == NULL) || (hashlen < PUBKEY_HASH_LEN) || (outlen < 25)) {
         return 1;
     }
     // prepend version
-    out[0] = P2PKH_VERSION_BYTE;
-    memmove(out + 1, public_key_hash, PUBKEY_HASH_LEN);
+    out[0] = version_byte;
+    memmove(out + 1, hash, PUBKEY_HASH_LEN);
     // sha256d of above
     if (sha256d(out, 21, buffer, 32)) {
         return 1;
@@ -86,6 +86,20 @@ int address_from_pubkey_hash(const uint8_t *public_key_hash,
     // grab first 4 bytes (checksum)
     memmove(out + 21, buffer, 4);
     return 0;
+}
+
+int address_from_script_hash(const uint8_t *script_hash,
+                             const size_t script_hash_len,
+                             uint8_t *out,
+                             size_t outlen) {
+    return address_from_hash(script_hash, script_hash_len, P2SH_VERSION_BYTE, out, outlen);
+}
+
+int address_from_pubkey_hash(const uint8_t *public_key_hash,
+                             const size_t public_key_hash_len,
+                             uint8_t *out,
+                             size_t outlen) {
+    return address_from_hash(public_key_hash, public_key_hash_len, P2PKH_VERSION_BYTE, out, outlen);
 }
 
 int address_from_pubkey(cx_ecfp_public_key_t *public_key, uint8_t *out, size_t outlen) {
