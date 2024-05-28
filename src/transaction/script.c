@@ -2,7 +2,6 @@
 #include <string.h>   // memset, explicit_bzero, memmove
 
 #include "script.h"
-#include "../globals.h"
 #include "../constants.h"
 #include "opcodes.h"
 
@@ -213,11 +212,7 @@ uint16_t parse_output_script(buffer_t *in, size_t script_len, output_script_info
             break;
         case SCRIPT_DATA:
             out->type = SCRIPT_DATA;
-            G_create_token_data.data_len =
-                read_data_script(in, script_len, G_create_token_data.data);
-            if (G_create_token_data.data_len == 0) {
-                return ERR_UNSUPPORTED_SCRIPT;
-            }
+            // XXX: We currently do not read the actual data from the output
             break;
         case SCRIPT_UNKNOWN:
         default:
