@@ -317,6 +317,10 @@ bool prepare_display_output() {
         }
     } else {
         // Output cannot be formatted with an address, this is invalid.
+        explicit_bzero(&G_context, sizeof(G_context));
+        io_send_sw(SW_INTERNAL_ERROR);
+        ui_menu_main();
+        return true;
     }
     base58_encode(address, ADDRESS_LEN, b58address, B58_ADDRESS_LEN);
     memmove(g_address, b58address, B58_ADDRESS_LEN);

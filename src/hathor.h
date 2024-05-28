@@ -74,7 +74,10 @@ int address_from_pubkey(cx_ecfp_public_key_t *public_key, uint8_t *out, size_t o
  * @return 0 on success
  *
  */
-int address_from_script_hash(const uint8_t *hash, size_t hashlen, uint8_t *out, size_t outlen);
+int address_from_script_hash(const uint8_t *script_hash,
+                             size_t script_hash_len,
+                             uint8_t *out,
+                             size_t outlen);
 
 /**
  * Convert public key hash160 to address.
