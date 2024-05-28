@@ -44,6 +44,9 @@ extern global_ctx_t G_context;
  */
 extern token_data_ctx_t G_token_symbols;
 
+/**
+ * Global token uid/symbol registry for user requests.
+ */
 extern create_token_ctx_t G_create_token_data;
 
 /**

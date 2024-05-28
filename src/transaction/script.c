@@ -2,11 +2,10 @@
 #include <string.h>   // memset, explicit_bzero, memmove
 
 #include "script.h"
-
+#include "../globals.h"
 #include "../constants.h"
 #include "opcodes.h"
 
-#include "../globals.h"
 
 /**
  * Identifies if the given script is P2PKH
@@ -93,8 +92,8 @@ bool identify_p2sh_script(buffer_t *in, size_t script_len) {
 
 bool identify_data_script(buffer_t *in, size_t script_len) {
     // Initial expected_len is 2 due to obligatory data push + OP_CHECKSIG
-    int expected_len = 2;
-    int data_len = 0;
+    size_t expected_len = 2;
+    uint8_t data_len = 0;
     if ((in == NULL) || (script_len < expected_len) || (script_len > MAX_DATA_SCRIPT_LEN) ||
         (in->size - in->offset < script_len)) {
         return false;
@@ -133,7 +132,7 @@ bool identify_data_script(buffer_t *in, size_t script_len) {
 
 uint8_t read_data_script(buffer_t *in, size_t script_len, uint8_t out[MAX_DATA_SCRIPT_LEN]) {
     // Initial expected_len is 2 due to obligatory data push + OP_CHECKSIG
-    int expected_len = 2;
+    size_t expected_len = 2;
     uint8_t data_len = 0;
     size_t data_start = 0;
     if ((in == NULL) || (out == NULL) || (script_len < expected_len) ||

@@ -301,7 +301,7 @@ bool prepare_display_output() {
     memset(g_address, 0, sizeof(g_address));
     char b58address[B58_ADDRESS_LEN] = {0};
     uint8_t address[ADDRESS_LEN] = {0};
-    if (address_from_pubkey_hash(output.script.type, PUBKEY_HASH_LEN, address, ADDRESS_LEN)) {
+    if (address_from_pubkey_hash(output.script.hash, PUBKEY_HASH_LEN, address, ADDRESS_LEN)) {
         explicit_bzero(&G_context, sizeof(G_context));
         io_send_sw(SW_INTERNAL_ERROR);
         ui_menu_main();

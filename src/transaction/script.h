@@ -1,5 +1,4 @@
-#ifndef TX_SCRIPT_H
-#define TX_SCRIPT_H
+#pragma once
 
 #define ERR_UNSUPPORTED_SCRIPT 0xB101
 #define ERR_INVALID_ARGS       0xB102
@@ -20,5 +19,3 @@
  * @return error code or 0 on success
  */
 uint16_t parse_output_script(buffer_t *in, size_t script_len, output_script_info_t *out);
-
-#endif  // TX_SCRIPT_H
