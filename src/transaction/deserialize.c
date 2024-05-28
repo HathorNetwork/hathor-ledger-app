@@ -80,6 +80,10 @@ size_t parse_output(uint8_t *in, size_t inlen, tx_output_t *output) {
 
     // parse script
     uint16_t err = parse_output_script(&buf, script_len, &output->script);
+    if (err == ERR_MORE_DATA_REQUIRED) {
+        // More data is required to parse the script
+        THROW(TX_STATE_READY);
+    }
     if (err) {
         PRINTF("Error parsing output script: %d\n", err);
         THROW(err);
