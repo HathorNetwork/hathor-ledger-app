@@ -32,7 +32,7 @@ bool verify_change(change_output_info_t *info, tx_output_t output) {
     uint8_t chain_code[32];
     int error = 0;
 
-    if (info == NULL) {
+    if ((info == NULL) || (output.script.type != SCRIPT_P2PKH)) {
         return false;
     }
 
@@ -51,7 +51,7 @@ end:
     }
 
     // 0 means equals
-    return memcmp(hash, output.pubkey_hash, PUBKEY_HASH_LEN) == 0;
+    return memcmp(hash, output.script.hash, PUBKEY_HASH_LEN) == 0;
 }
 
 /**

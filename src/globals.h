@@ -44,6 +44,8 @@ extern global_ctx_t G_context;
  */
 extern token_data_ctx_t G_token_symbols;
 
+extern create_token_ctx_t G_create_token_data;
+
 /**
  * Persistent Storage
  */

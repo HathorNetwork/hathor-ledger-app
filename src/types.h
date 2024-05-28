@@ -130,6 +130,11 @@ typedef struct {
     token_symbol_t tokens[TX_MAX_TOKENS];
 } token_data_ctx_t;
 
+typedef struct {
+    uint8_t data_len;
+    uint8_t data[MAX_DATA_SCRIPT_LEN];
+} create_token_ctx_t;
+
 /**
  * Structure for global context.
  */
