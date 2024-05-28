@@ -5,7 +5,6 @@
 #include "../constants.h"
 #include "opcodes.h"
 
-
 /**
  * Identifies if the given script is P2PKH
  */
