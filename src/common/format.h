@@ -91,3 +91,15 @@ void format_value(uint64_t value, char *out);
  *
  */
 void itoa(int value, char *result, int base);
+
+/**
+ * Check that the input string consists only of printable characters.
+ * This is to avoid sending garbage to the device screen.
+ *
+ * @param[in]  str
+ *   Pointer to input string.
+ * @param[in]  len
+ *   Length of input string.
+ *
+ */
+bool is_printable(char *str, int len);

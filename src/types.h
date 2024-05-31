@@ -142,6 +142,8 @@ typedef struct {
     request_type_e req_type;  /// user request
     bip32_path_t bip32_path;
     token_t token;
+    uint8_t nft_data_len;
+    uint8_t nft_data[150];
 } global_ctx_t;
 
 /**
