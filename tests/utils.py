@@ -32,8 +32,8 @@ def fake_tx(
     outputs: Optional[TxOutput] = None,
     tokens: Optional[bytes] = None,
 ) -> Transaction:
-    tx_inps = inputs or [fake_input() for _ in range(fake.pyint(1, 10))]
-    tx_outps = outputs or [fake_output() for _ in range(fake.pyint(1, 10))]
+    tx_inps = inputs or [fake_input() for _ in range(fake.pyint(1, 5))]
+    tx_outps = outputs or [fake_output() for _ in range(fake.pyint(1, 5))]
     tkns = (
         [fake.sha256(True) for _ in range(fake.pyint(1, 10))]
         if tokens is None
