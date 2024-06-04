@@ -16,6 +16,7 @@
 #include "../handler/send_token_data.h"
 #include "../handler/verify_token_signature.h"
 #include "../handler/reset_token_signatures.h"
+#include "../handler/send_create_token_data.h"
 
 int apdu_dispatcher(const command_t *cmd) {
     if (cmd == NULL) {
@@ -122,6 +123,16 @@ int apdu_dispatcher(const command_t *cmd) {
             buf.offset = 0;
 
             return handler_reset_token_signatures();
+        case SEND_CREATE_TOKEN_DATA:
+            if (cmd->p2 != 0) {
+                return io_send_sw(SW_WRONG_P1P2);
+            }
+
+            buf.ptr = cmd->data;
+            buf.size = cmd->lc;
+            buf.offset = 0;
+
+            return handler_send_create_token_data(cmd->p1, &buf);
 
         default:
             return io_send_sw(SW_INS_NOT_SUPPORTED);

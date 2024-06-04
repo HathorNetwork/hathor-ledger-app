@@ -31,6 +31,7 @@ typedef enum {
     SEND_TOKEN_DATA = 0x08,         /// send token data
     VERIFY_TOKEN_SIGNATURE = 0x09,  /// verify token signature
     RESET_TOKEN_SIGNATURES = 0x0a,  /// invalidate all token signatures
+    SEND_CREATE_TOKEN_DATA = 0x0b,  /// send create token data
 } command_e;
 
 /**

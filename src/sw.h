@@ -72,3 +72,8 @@
  * Status word for internal error (should not happen)
  */
 #define SW_INTERNAL_ERROR 0xB00B
+/**
+ * Status word for unsupported strings
+ * Ledger screens only support ASCII but some strings may contain emoji or invalid chars.
+ */
+#define SW_UNPRINTABLE_STRING 0xB00C
