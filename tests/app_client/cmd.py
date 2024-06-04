@@ -2,10 +2,10 @@ import struct
 from typing import List, Tuple
 
 from app_client.cmd_builder import CommandBuilder, InsType
+from app_client.create_token_transaction import CreateTokenTransaction
 from app_client.exception import DeviceException
 from app_client.token import Token
 from app_client.transaction import ChangeInfo, Transaction
-from app_client.create_token_transaction import CreateTokenTransaction
 from app_client.transport import ApduTransport
 
 

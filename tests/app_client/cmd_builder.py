@@ -3,9 +3,9 @@ import logging
 import struct
 from typing import Iterator, List, Tuple, Union, cast
 
+from app_client.create_token_transaction import CreateTokenTransaction
 from app_client.token import Token
 from app_client.transaction import ChangeInfo, Transaction
-from app_client.create_token_transaction import CreateTokenTransaction
 from app_client.utils import bip32_path_from_string
 
 MAX_APDU_LEN: int = 255
