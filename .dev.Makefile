@@ -18,7 +18,7 @@ DOCKER_BUILDER_ARGS = --rm -ti -v "$(realpath .):/app"
 
 SPECULOS_TAG=latest
 SPECULOS_IMAGE = ghcr.io/ledgerhq/speculos:$(BUILDER_TAG)
-SPECULOS_ARGS = --sdk 2.0 --display headless
+SPECULOS_ARGS = --sdk 2.1 --display headless
 DOCKER_SPECULOS_ARGS = --rm -ti -v "$(realpath .):/app"
 # webhost
 DOCKER_SPECULOS_ARGS += -p 5000:5000
