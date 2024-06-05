@@ -40,6 +40,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--url", help="Speculos API endpoint", default="http://localhost:5000/"
     )
+    parser.addoption("--device", help="Target device", default="nanos")
 
 
 @pytest.fixture(scope="module")
