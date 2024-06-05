@@ -2,9 +2,9 @@ name: Compilation & tests
 
 on:
   push:
-    branches: [ "master", "dev" ]
+    branches: [ "master", "dev", "main", "develop" ]
   pull_request:
-    branches: [ "master", "dev" ]
+    branches: [ "master", "dev", "main", "develop" ]
 
 jobs:
   job_build_debug:
@@ -16,17 +16,17 @@ jobs:
 
     steps:
       - name: Clone
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Build
-        run: |
+        run:
           make DEBUG=1
 
       - name: Upload app binary
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: hathor-app-debug
-          path: bin
+          path: bin/
 
   job_unit_test:
     name: Unit test
@@ -38,22 +38,22 @@ jobs:
 
     steps:
       - name: Clone
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Build unit tests
-        run: |
+        run:
           cd unit-tests/
           bash run_tests.sh
 
       - name: Generate code coverage
-        run: |
+        run:
           cd unit-tests/
           bash gen_coverage.sh
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: code-coverage
-          path: unit-tests/coverage
+          path: unit-tests/coverage/
 
   job_test:
     name: Test
@@ -74,10 +74,10 @@ jobs:
 
     steps:
       - name: Clone
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Download app binary
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: hathor-app-debug
           path: bin
@@ -99,7 +99,7 @@ jobs:
 
       - name: Upload Speculos log
         if: success() || failure()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: speculos-log
           path: speculos.log
