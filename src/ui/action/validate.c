@@ -39,3 +39,18 @@ void ui_action_sign_token_data(bool choice) {
 
     ui_menu_main();
 }
+
+void ui_action_send_create_token(bool choice) {
+    if (choice) {
+        token_symbol_t *token_symbol = &G_token_symbols.tokens[G_token_symbols.len++];
+        memmove(&token_symbol->symbol, &G_context.token.symbol, G_context.token.symbol_len);
+        token_symbol->symbol[G_context.token.symbol_len] = '\0';
+        io_send_sw(SW_OK);
+    } else {
+        explicit_bzero(&G_context, sizeof(G_context));
+        explicit_bzero(&G_token_symbols, sizeof(G_token_symbols));
+        io_send_sw(SW_DENY);
+    }
+
+    ui_menu_main();
+}

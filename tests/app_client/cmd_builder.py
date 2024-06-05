@@ -3,6 +3,7 @@ import logging
 import struct
 from typing import Iterator, List, Tuple, Union, cast
 
+from app_client.create_token_transaction import CreateTokenTransaction
 from app_client.token import Token
 from app_client.transaction import ChangeInfo, Transaction
 from app_client.utils import bip32_path_from_string
@@ -39,6 +40,7 @@ class InsType(enum.IntEnum):
     INS_SEND_TOKEN_DATA = 0x08
     INS_VERIFY_TOKEN_SIGNATURE = 0x09
     INS_RESET_TOKEN_SIGNATURES = 0x0A
+    INS_SEND_CREATE_TOKEN_DATA = 0x0B
 
 
 class CommandBuilder:
@@ -279,4 +281,13 @@ class CommandBuilder:
             p1=0x00,
             p2=0x00,
             cdata=b"",
+        )
+
+    def send_create_token_data(self, tx: CreateTokenTransaction) -> bytes:
+        return self.serialize(
+            cla=self.CLA,
+            ins=InsType.INS_SEND_CREATE_TOKEN_DATA,
+            p1=0x00,
+            p2=0x00,
+            cdata=tx.serialize_token(),
         )

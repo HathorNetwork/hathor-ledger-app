@@ -3,20 +3,8 @@
 #include "token_parser.h"
 
 #include "../common/buffer.h"
+#include "../common/format.h"
 #include "../globals.h"
-
-bool is_printable(char *str, int len) {
-    // this method works on char arrays and strings
-    for (int i = 0; i < len; i++) {
-        // to catch the end of a string
-        if (str[i] == '\0') return true;
-        uint8_t c = (uint8_t) str[i];
-        // printable ascii characters 0x20-0x7f
-        if (c < 0x20u || c >= 0x80u) return false;
-    }
-    // char arrays (not strings) do not end with '\0'
-    return true;
-}
 
 bool parse_token(buffer_t *buf, token_t *token) {
     if (buf == NULL || token == NULL) {

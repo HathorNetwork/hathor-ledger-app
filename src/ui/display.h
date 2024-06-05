@@ -30,6 +30,8 @@ int ui_display_xpub_confirm(void);
  */
 int ui_display_confirm_address(void);
 
-int ui_display_reset_token_signatures_confirm();
+int ui_display_reset_token_signatures_confirm(void);
 
-int ui_display_sign_token_data();
+int ui_display_sign_token_data(void);
+
+int ui_display_create_token_data(void);

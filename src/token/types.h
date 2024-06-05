@@ -24,3 +24,5 @@ typedef struct {
     token_uid_t uid;
     char symbol[MAX_TOKEN_SYMBOL_LEN + 1];
 } token_symbol_t;
+
+typedef enum { CUSTOM_TOKEN = 0x01, NFT_TOKEN = 0x02 } token_type_t;

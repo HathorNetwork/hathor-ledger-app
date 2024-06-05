@@ -52,3 +52,5 @@
  * Any other means that index-1 is the index of token on the token array
  */
 #define TOKEN_DATA_INDEX_MASK 0x7Fu
+
+#define MAX_NFT_DATA_LEN 100
