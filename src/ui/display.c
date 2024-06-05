@@ -24,6 +24,7 @@ static char g_address[B58_ADDRESS_LEN];
 static char g_token_symbol[MAX_TOKEN_SYMBOL_LEN + 1];
 static char g_token_name[MAX_TOKEN_NAME_LEN + 1];
 static char g_token_uid[1 + 2 * TOKEN_UID_LEN];
+static char g_token_nft_data[1 + MAX_NFT_DATA_LEN];
 #ifdef UI_SHOW_PATH
 static char g_bip32_path[60];
 
@@ -540,6 +541,82 @@ int ui_display_sign_token_data() {
     format_hex(G_context.token.uid, TOKEN_UID_LEN, g_token_uid, 65);
     // ask confirmation to sign
     g_validate_callback = &ui_action_sign_token_data;
+    ux_flow_init(0, ux_display_sign_token_data, NULL);
+    return 0;
+}
+
+
+UX_STEP_NOCB(ux_display_token_data_4_nft_data,
+             bnnn_paging,
+             {
+                 .title = "NFT Data",
+                 .text = g_token_nft_data,
+             });
+
+/* FLOW to show create token data:
+ *  #1 screen: eye icon + "Confirm token data"
+ *  #2 screen: symbol
+ *  #3 screen: name
+ *  #4 screen: approve button
+ *  #5 screen: reject button
+ */
+UX_FLOW(ux_display_create_token_data,
+        &ux_display_token_data_0,
+        &ux_display_token_data_1_symbol,
+        &ux_display_token_data_2_name,
+        &ux_display_approve_step,
+        &ux_display_reject_step,
+        FLOW_LOOP);
+
+/* FLOW to show create token data:
+ *  #1 screen: eye icon + "Confirm token data"
+ *  #2 screen: symbol
+ *  #3 screen: name
+ *  #4 screen: nft data
+ *  #5 screen: approve button
+ *  #6 screen: reject button
+ */
+UX_FLOW(ux_display_create_nft_data,
+        &ux_display_token_data_0,
+        &ux_display_token_data_1_symbol,
+        &ux_display_token_data_2_name,
+        &ux_display_token_data_4_nft_data,
+        &ux_display_approve_step,
+        &ux_display_reject_step,
+        FLOW_LOOP);
+
+
+int ui_display_create_token_data() {
+    if ((G_context.token.version != 1) ||
+        (G_context.token.symbol_len > MAX_TOKEN_SYMBOL_LEN) ||
+        (G_context.token.name_len > MAX_TOKEN_NAME_LEN)) {
+        explicit_bzero(&G_context, sizeof(G_context));
+        explicit_bzero(&G_token_symbols, sizeof(G_token_symbols));
+        io_send_sw(SW_INTERNAL_ERROR);
+        ui_menu_main();
+        return 1;
+    }
+
+    // show token information
+    // copy symbol
+    memmove(g_token_symbol, G_context.token.symbol, G_context.token.symbol_len);
+    g_token_symbol[G_context.token.symbol_len] = '\0';
+    // copy name
+    memmove(g_token_name, G_context.token.name, G_context.token.name_len);
+    g_token_name[G_context.token.name_len] = '\0';
+
+    // ask confirmation to sign
+    g_validate_callback = &ui_action_send_create_token;
+
+    // prepare nft data
+    if (G_context.nft_data_len > 0) {
+        memmove(g_token_nft_data, G_context.nft_data, G_context.nft_data_len);
+        g_token_nft_data[G_context.nft_data_len] = '\0';
+        ux_flow_init(0, ux_display_create_nft_data, NULL);
+    } else {
+        ux_flow_init(0, ux_display_create_token_data, NULL);
+    }
+
     ux_flow_init(0, ux_display_sign_token_data, NULL);
     return 0;
 }

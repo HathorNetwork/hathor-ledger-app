@@ -144,7 +144,7 @@ typedef struct {
     bip32_path_t bip32_path;
     token_t token;
     uint8_t nft_data_len;
-    uint8_t nft_data[150];
+    uint8_t nft_data[MAX_NFT_DATA_LEN];
 } global_ctx_t;
 
 /**

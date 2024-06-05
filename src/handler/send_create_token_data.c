@@ -7,6 +7,7 @@
 #include "../sw.h"
 #include "../common/buffer.h"
 #include "../common/format.h"
+#include "../ui/display.h"
 
 int handler_send_create_token_data(uint8_t token_type, buffer_t *cdata) {
     explicit_bzero(&G_context, sizeof(G_context));
@@ -14,6 +15,7 @@ int handler_send_create_token_data(uint8_t token_type, buffer_t *cdata) {
 
     // version, symbol, name (and +data if is_nft)
     if (!(buffer_read_u8(cdata, &G_context.token.version) &&
+          G_context.token.version == 1 &&
           buffer_read_u8(cdata, &G_context.token.name_len) &&
           buffer_read_bytes(cdata,
                             G_context.token.name,
@@ -45,11 +47,11 @@ int handler_send_create_token_data(uint8_t token_type, buffer_t *cdata) {
         }
     }
 
-    // XXX: Start flow to ask user for confirmation
+    // Start flow to ask user for confirmation
     PRINTF("[+] [send_create_token_data] Token version=%d, namelen=%d, symbollen=%d\n",
            G_context.token.version,
            G_context.token.name_len,
            G_context.token.symbol_len);
 
-    return io_send_sw(SW_OK);
+    return ui_display_create_token_data();
 }
