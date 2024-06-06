@@ -24,14 +24,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build
-        run:
-          echo "Building for ${{ matrix.device }}..."
-          eval "BOLOS_SDK=\$$(echo ${{ matrix.device }} | tr [:lower:] [:upper:])_SDK"
-          echo "BOLOS_SDK value will be ${BOLOS_SDK}"
+        run: |
+          echo "Building for ${{ matrix.device }}..." && \
+          eval "BOLOS_SDK=\$$(echo ${{ matrix.device }} | tr [:lower:] [:upper:])_SDK" && \
+          echo "BOLOS_SDK value will be ${BOLOS_SDK}" && \
           make BOLOS_SDK=${BOLOS_SDK} DEBUG=1
 
       - name: Prepare upload
-        run:
+        run: |
           find build/ -mindepth 2 -maxdepth 2 -type d ! -name 'bin' -exec rm -r {} +
 
       - name: Upload app binary
