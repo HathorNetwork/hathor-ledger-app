@@ -7,8 +7,10 @@ on:
     branches: [ "master", "dev", "main", "develop" ]
 
 jobs:
-  job_build_debug:
+  build_debug:
     name: Build debug
+    matrix:
+      device: [nanos, nanox, nanosp]
     runs-on: ubuntu-latest
 
     container:
@@ -19,14 +21,21 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build
-        run:
-          make DEBUG=1
+        run: |
+          eval "BOLOS_SDK=\$$(echo ${{ matrix.device }} | tr [:lower:] [:upper:])_SDK" && \
+          echo "BOLOS_SDK value will be: ${BOLOS_SDK}" && \
+          make BOLOS_SDK=${BOLOS_SDK} DEBUG=1
+
+      - name: Prepare upload
+        run: |
+          find build/ -mindepth 2 -maxdepth 2 -type d ! -name 'bin' -exec rm -r {} +
 
       - name: Upload app binary
         uses: actions/upload-artifact@v4
         with:
           name: hathor-app-debug
-          path: bin/
+          path: build/
+          if-no-files-found: error
 
   job_unit_test:
     name: Unit test
@@ -58,6 +67,8 @@ jobs:
   job_test:
     name: Test
     needs: job_build_debug
+    matrix:
+      device: [nanos, nanox, nanosp]
     runs-on: ubuntu-latest
 
     container:
@@ -89,7 +100,7 @@ jobs:
 
       - name: Run test
         run: |
-          nohup bash -c "python /speculos/speculos.py bin/app.elf --sdk 2.1 --display headless" > speculos.log 2<&1 &
+          nohup bash -c "python /speculos/speculos.py bin/${{ matrix.device }}/app.elf --sdk 2.1 --display headless" > speculos.log 2<&1 &
           cd tests && make install && make test
 
       - name: Show speculos log
