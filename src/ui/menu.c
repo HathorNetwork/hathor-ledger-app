@@ -30,7 +30,7 @@ void ui_menu_main() {
     ux_flow_init(0, ux_menu_main_flow, NULL);
 }
 
-UX_STEP_NOCB(ux_menu_info_step, bn, {"Hathor App", "(c) 2021 Hathor Labs"});
+UX_STEP_NOCB(ux_menu_info_step, bn, {"Hathor App", "(c) 2024 Hathor Labs"});
 UX_STEP_CB(ux_menu_back_step, pb, ui_menu_main(), {&C_icon_back, "Back"});
 
 // FLOW for the about submenu:
