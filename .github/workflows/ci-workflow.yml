@@ -37,7 +37,7 @@ jobs:
       - name: Upload app binary
         uses: actions/upload-artifact@v4
         with:
-          name: hathor-app-debug
+          name: hathor-app-debug-${{ matrix.device }}
           path: build/
           if-no-files-found: error
 
@@ -85,7 +85,7 @@ jobs:
       - name: Download app binary
         uses: actions/download-artifact@v4
         with:
-          name: hathor-app-debug
+          name: hathor-app-debug-${{ matrix.device }}
           path: bin
 
       - name: Install Poetry
