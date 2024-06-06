@@ -58,16 +58,6 @@ jobs:
           cd unit-tests/
           bash run_tests.sh
 
-      - name: Generate code coverage
-        run:
-          cd unit-tests/
-          bash gen_coverage.sh
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: code-coverage
-          path: unit-tests/coverage/
-
   job_test:
     name: Test
     needs: job_build_debug
