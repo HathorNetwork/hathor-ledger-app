@@ -9,10 +9,11 @@ on:
     branches: ["master", "dev", "main", "develop"]
 
 jobs:
-  build_debug:
+  job_build_debug:
     name: Build debug
-    matrix:
-      device: [nanos, nanox, nanosp]
+    strategy:
+      matrix:
+        device: [nanos, nanox, nanosp]
     runs-on: ubuntu-latest
 
     container:
@@ -70,8 +71,9 @@ jobs:
   job_test:
     name: Test
     needs: job_build_debug
-    matrix:
-      device: [nanos, nanox, nanosp]
+    strategy:
+      matrix:
+        device: [nanos, nanox, nanosp]
     runs-on: ubuntu-latest
 
     container:
