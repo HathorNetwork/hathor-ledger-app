@@ -64,6 +64,13 @@ jobs:
     strategy:
       matrix:
         device: [nanos, nanox, nanosp]
+        include:
+          - device: nanos
+            build_dir: nanos
+          - device: nanosp
+            build_dir: nanos2
+          - device: nanox
+            build_dir: nanox
     runs-on: ubuntu-latest
 
     container:
@@ -95,7 +102,7 @@ jobs:
 
       - name: Run test
         run: |
-          nohup bash -c "python /speculos/speculos.py build/${{ matrix.device }}/bin/app.elf --model ${{ matrix.device }} --display headless" > speculos.log 2<&1 &
+          nohup bash -c "python /speculos/speculos.py build/${{ matrix.build_dir }}/bin/app.elf --model ${{ matrix.device }} --display headless" > speculos.log 2<&1 &
           cd tests && make install && make test
 
       - name: Show speculos log
