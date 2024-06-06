@@ -1,10 +1,12 @@
+---
+
 name: Compilation & tests
 
 on:
   push:
-    branches: [ "master", "dev", "main", "develop" ]
+    branches: ["master", "dev", "main", "develop"]
   pull_request:
-    branches: [ "master", "dev", "main", "develop" ]
+    branches: ["master", "dev", "main", "develop"]
 
 jobs:
   build_debug:
@@ -22,8 +24,9 @@ jobs:
 
       - name: Build
         run: |
-          eval "BOLOS_SDK=\$$(echo ${{ matrix.device }} | tr [:lower:] [:upper:])_SDK" && \
-          echo "BOLOS_SDK value will be: ${BOLOS_SDK}" && \
+          echo "Building for ${{ matrix.device }}..."
+          eval "BOLOS_SDK=\$$(echo ${{ matrix.device }} | tr [:lower:] [:upper:])_SDK"
+          echo "BOLOS_SDK value will be: ${BOLOS_SDK}"
           make BOLOS_SDK=${BOLOS_SDK} DEBUG=1
 
       - name: Prepare upload
@@ -114,4 +117,3 @@ jobs:
         with:
           name: speculos-log
           path: speculos.log
-
