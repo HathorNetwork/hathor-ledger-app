@@ -86,7 +86,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: hathor-app-debug-${{ matrix.device }}
-          path: bin
+          path: build
 
       - name: Install Poetry
         run: |
@@ -95,7 +95,7 @@ jobs:
 
       - name: Run test
         run: |
-          nohup bash -c "python /speculos/speculos.py bin/${{ matrix.device }}/app.elf --sdk 2.1 --display headless" > speculos.log 2<&1 &
+          nohup bash -c "python /speculos/speculos.py build/${{ matrix.device }}/bin/app.elf --sdk 2.1 --display headless" > speculos.log 2<&1 &
           cd tests && make install && make test
 
       - name: Show speculos log
