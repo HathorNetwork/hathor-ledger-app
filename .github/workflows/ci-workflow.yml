@@ -95,7 +95,7 @@ jobs:
 
       - name: Run test
         run: |
-          nohup bash -c "python /speculos/speculos.py build/${{ matrix.device }}/bin/app.elf --sdk 2.1 --display headless" > speculos.log 2<&1 &
+          nohup bash -c "python /speculos/speculos.py build/${{ matrix.device }}/bin/app.elf --model ${{ matrix.device }} --display headless" > speculos.log 2<&1 &
           cd tests && make install && make test
 
       - name: Show speculos log
