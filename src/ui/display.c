@@ -328,7 +328,7 @@ bool prepare_display_output() {
         }
         memmove(g_output_data,
                 G_context.tx_info.output_datas[output.script.data_index].data,
-                G_context.tx_info.output_datas[output.script.data_index].len, );
+                G_context.tx_info.output_datas[output.script.data_index].len);
     }
 
     if (output.script.type == SCRIPT_P2PKH || output.script.type == SCRIPT_P2SH) {
