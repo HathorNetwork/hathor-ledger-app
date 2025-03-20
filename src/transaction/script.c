@@ -5,11 +5,10 @@
 
 #include "script.h"
 #include "../constants.h"
+#include "../globals.h"
 #include "opcodes.h"
+#include "types.h"
 
-/**
- * Identifies if the given script is P2PKH
- */
 bool identify_p2pkh_script(buffer_t *in, uint16_t script_len) {
     uint8_t p2pkh[] = {OP_DUP, OP_HASH160, PUBKEY_HASH_LEN, OP_EQUALVERIFY, OP_CHECKSIG};
     size_t offset = 0;
@@ -57,9 +56,6 @@ bool identify_p2pkh_script(buffer_t *in, uint16_t script_len) {
     return true;
 }
 
-/**
- * Identifies if the given script is P2SH
- */
 bool identify_p2sh_script(buffer_t *in, uint16_t script_len) {
     uint8_t p2sh[] = {OP_HASH160, PUBKEY_HASH_LEN, OP_EQUAL};
     size_t offset = 0;
@@ -156,18 +152,14 @@ bool identify_data_script(buffer_t *in, uint16_t script_len) {
     return true;
 }
 
-/**
- * Read data from script and store it in `out`
- * Returns number of bytes read, 0 if any error occurs.
- */
-uint8_t read_data_script(buffer_t *in, uint16_t script_len, uint8_t out[MAX_DATA_SCRIPT_LEN]) {
+uint16_t read_data_script(buffer_t *in, uint16_t script_len, data_script_t *out) {
     // Initial expected_len is 2 due to obligatory data push + OP_CHECKSIG
     uint16_t expected_len = 2;
     uint8_t data_len = 0;
     size_t data_start = 0;
     if ((in == NULL) || (out == NULL) || (script_len < expected_len) ||
         (script_len > MAX_DATA_SCRIPT_LEN) || (in->size - in->offset < script_len)) {
-        return 0;
+        return ERR_INVALID_ARGS;
     }
     if (in->ptr[in->offset] == OP_PUSHDATA1) {
         // If first opcode is OP_PUSHDATA1, the second is the data length
@@ -186,24 +178,22 @@ uint8_t read_data_script(buffer_t *in, uint16_t script_len, uint8_t out[MAX_DATA
         if (data_len > 75) {
             // Invalid script
             // Maybe return error code?
-            return 0;
+            return ERR_INVALID_SCRIPT;
         }
     }
     expected_len += data_len;
     if (script_len != expected_len) {
         // Invalid script
         // Here we check for actual data push and data + OP_CHECKSIG length
-        return 0;
+        return ERR_INVALID_SCRIPT;
     }
 
     // Read actual data from buffer
-    memmove(out, in->ptr + in->offset + data_start, data_len);
-    return data_len;
+    memmove(out->data, in->ptr + in->offset + data_start, data_len);
+    out->len = data_len;
+    return 0;
 }
 
-/**
- * Identifies the given script type
- */
 script_type_t identify_script(buffer_t *in, uint16_t script_len) {
     if (identify_p2pkh_script(in, script_len)) {
         return SCRIPT_P2PKH;
@@ -247,7 +237,16 @@ uint16_t parse_output_script(buffer_t *in, uint16_t script_len, output_script_in
             break;
         case SCRIPT_DATA:
             out->type = SCRIPT_DATA;
-            // XXX: We currently do not read the actual data from the output
+            if (G_context.tx_info.output_datas_len >= TX_MAX_DATA_OUTPUTS) {
+                return ERR_DATA_LIMIT_REACHED;
+            }
+            uint8_t data_index = G_context.tx_info.output_datas_len++;
+            uint16_t err =
+                read_data_script(in, script_len, &G_context.tx_info.output_datas[data_index]);
+            if (err) {
+                return err;
+            }
+            out->data_index = data_index;
             break;
         case SCRIPT_UNKNOWN:
         default:

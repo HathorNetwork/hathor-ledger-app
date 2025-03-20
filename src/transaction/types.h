@@ -41,7 +41,16 @@ typedef enum {
 typedef struct {
     script_type_t type;
     uint8_t hash[PUBKEY_HASH_LEN];  // hash160 of pubkey
+    uint8_t data_index;             // Index on G_context.tx_info.output_datas
 } output_script_info_t;
+
+/**
+ * Data script type alias
+ */
+typedef struct {
+    uint8_t data[MAX_DATA_SCRIPT_LEN];
+    uint8_t len;
+} data_script_t;
 
 /**
  * Structure for transaction output

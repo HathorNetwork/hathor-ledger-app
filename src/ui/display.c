@@ -21,6 +21,7 @@ static action_validate_cb g_validate_callback;
 static char g_amount[30];
 static char g_output_index[10];
 static char g_address[B58_ADDRESS_LEN];
+static char g_output_data[MAX_DATA_SCRIPT_LEN];
 static char g_token_symbol[MAX_TOKEN_SYMBOL_LEN + 1];
 static char g_token_name[MAX_TOKEN_NAME_LEN + 1];
 static char g_token_uid[1 + 2 * TOKEN_UID_LEN];
@@ -60,6 +61,15 @@ UX_STEP_NOCB(ux_display_address_step,
                  .title = "Address",
                  .text = g_address,
              });
+
+// Step with title/text for address
+UX_STEP_NOCB(ux_display_data_script_step,
+             bnnn_paging,
+             {
+                 .title = "Data",
+                 .text = g_output_data,
+             });
+
 // Step with title/text for amount
 UX_STEP_NOCB(ux_display_amount_step,
              bnnn_paging,
@@ -209,6 +219,13 @@ UX_FLOW(ux_display_tx_output_flow,
         &ux_display_reject_step,         // reject => return error
         FLOW_LOOP);
 
+UX_FLOW(ux_display_tx_data_output_flow,
+        &ux_display_review_output_step,  // Output <curr>/<total>
+        &ux_display_data_script_step,    // data script
+        &ux_display_approve_step,        // accept => decode next component and redisplay if needed
+        &ux_display_reject_step,         // reject => return error
+        FLOW_LOOP);
+
 // Return true if we are showing something to the user
 // The caller can use this as a signal to halt any other display processing
 bool check_output_index_state() {
@@ -297,33 +314,57 @@ bool prepare_display_output() {
     g_output_index[len++] = '/';
     itoa(total_outputs, g_output_index + len, 10);
 
-    // set g_address
     memset(g_address, 0, sizeof(g_address));
-    char b58address[B58_ADDRESS_LEN] = {0};
-    uint8_t address[ADDRESS_LEN] = {0};
-    if (output.script.type == SCRIPT_P2PKH) {
-        if (address_from_pubkey_hash(output.script.hash, PUBKEY_HASH_LEN, address, ADDRESS_LEN)) {
+    memset(g_output_data, 0, sizeof(g_output_data));
+
+    if (output.script.type == SCRIPT_DATA) {
+        // prepare g_output_data
+        if (output.script.data_index >= G_context.tx_info.output_datas_len) {
+            // There is no data for this output data script
             explicit_bzero(&G_context, sizeof(G_context));
             io_send_sw(SW_INTERNAL_ERROR);
             ui_menu_main();
             return true;
         }
-    } else if (output.script.type == SCRIPT_P2SH) {
-        if (address_from_script_hash(output.script.hash, PUBKEY_HASH_LEN, address, ADDRESS_LEN)) {
-            explicit_bzero(&G_context, sizeof(G_context));
-            io_send_sw(SW_INTERNAL_ERROR);
-            ui_menu_main();
-            return true;
-        }
-    } else {
-        // Output cannot be formatted with an address, this is invalid.
-        explicit_bzero(&G_context, sizeof(G_context));
-        io_send_sw(SW_INTERNAL_ERROR);
-        ui_menu_main();
-        return true;
+        memmove(g_output_data,
+                G_context.tx_info.output_datas[output.script.data_index].data,
+                G_context.tx_info.output_datas[output.script.data_index].len, );
     }
-    base58_encode(address, ADDRESS_LEN, b58address, B58_ADDRESS_LEN);
-    memmove(g_address, b58address, B58_ADDRESS_LEN);
+
+    if (output.script.type == SCRIPT_P2PKH || output.script.type == SCRIPT_P2SH) {
+        // prepare g_address
+        char b58address[B58_ADDRESS_LEN] = {0};
+        uint8_t address[ADDRESS_LEN] = {0};
+        if (output.script.type == SCRIPT_P2PKH) {
+            if (address_from_pubkey_hash(output.script.hash,
+                                         PUBKEY_HASH_LEN,
+                                         address,
+                                         ADDRESS_LEN)) {
+                explicit_bzero(&G_context, sizeof(G_context));
+                io_send_sw(SW_INTERNAL_ERROR);
+                ui_menu_main();
+                return true;
+            }
+        } else if (output.script.type == SCRIPT_P2SH) {
+            if (address_from_script_hash(output.script.hash,
+                                         PUBKEY_HASH_LEN,
+                                         address,
+                                         ADDRESS_LEN)) {
+                explicit_bzero(&G_context, sizeof(G_context));
+                io_send_sw(SW_INTERNAL_ERROR);
+                ui_menu_main();
+                return true;
+            }
+        } else {
+            // Output cannot be formatted with an address, this is invalid.
+            explicit_bzero(&G_context, sizeof(G_context));
+            io_send_sw(SW_INTERNAL_ERROR);
+            ui_menu_main();
+            return true;
+        }
+        base58_encode(address, ADDRESS_LEN, b58address, B58_ADDRESS_LEN);
+        memmove(g_address, b58address, B58_ADDRESS_LEN);
+    }
 
     // set g_ammount (HTR value)
     memset(g_amount, 0, sizeof(g_amount));
@@ -366,7 +407,13 @@ int ui_display_tx_outputs() {
     // skip changes, return ok if there is no more on buffer
     if (prepare_display_output()) return 0;
     g_validate_callback = &ui_confirm_output;  // show next until need more
-    ux_flow_init(0, ux_display_tx_output_flow, NULL);
+
+    tx_output_t output = G_context.tx_info.outputs[G_context.tx_info.display_index];
+    if (output.script.type == SCRIPT_DATA) {
+        ux_flow_init(0, ux_display_tx_data_output_flow, NULL);
+    } else {
+        ux_flow_init(0, ux_display_tx_output_flow, NULL);
+    }
 
     return 0;
 }

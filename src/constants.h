@@ -53,8 +53,18 @@
  */
 #define TOKEN_DATA_INDEX_MASK 0x7Fu
 
+#ifdef TARGET_NANOS
+/**
+ * Maximum length of a data script
+ * 150 max data + 2 opcodes + 1 byte of length (OP_PUSHDATA1 length ...data OP_CHECKSIG)
+ */
+#define MAX_DATA_SCRIPT_LEN 53
+#define TX_MAX_DATA_OUTPUTS 1
+#else
 /**
  * Maximum length of a data script
  * 150 max data + 2 opcodes + 1 byte of length (OP_PUSHDATA1 length ...data OP_CHECKSIG)
  */
 #define MAX_DATA_SCRIPT_LEN 153
+#define TX_MAX_DATA_OUTPUTS 4
+#endif
