@@ -1,4 +1,5 @@
 import struct
+import time
 from typing import List, Tuple
 
 from app_client.cmd_builder import CommandBuilder, InsType
@@ -15,6 +16,7 @@ class Command:
         self.transport = transport
 
     def get_app_and_version(self) -> Tuple[str, str]:
+        print("[+] sending: get_app_and_version request")
         sw, response = self.transport.exchange_apdu_raw(
             self.builder.get_app_and_version()
         )  # type: int, bytes
@@ -43,6 +45,7 @@ class Command:
         return app_name, version
 
     def get_version(self) -> Tuple[bytes, int, int, int]:
+        print("[+] sending: get_version request")
         sw, response = self.transport.exchange_apdu_raw(self.builder.get_version())
 
         if sw != 0x9000:
@@ -61,6 +64,7 @@ class Command:
 
     def get_address(self, bip32_path: str) -> str:
 
+        print("[+] sending: get_address request")
         sw, response = self.transport.exchange_apdu_raw(
             self.builder.get_address(bip32_path)
         )
@@ -71,6 +75,7 @@ class Command:
         return
 
     def get_xpub(self, bip32_path: str) -> Tuple[bytes, bytes]:
+        print("[+] sending: get_xpub request")
         sw, response = self.transport.exchange_apdu_raw(
             self.builder.get_xpub(bip32_path=bip32_path)
         )
@@ -107,19 +112,28 @@ class Command:
         response: bytes = b""
 
         signatures: List[bytes] = []
+
+        index = 0
         for chunk in self.builder.sign_tx_send_data(
             transaction=transaction,
             change_list=change_list,
             use_old_protocol=use_old_protocol,
         ):
+            print("[+] sending: sign_tx send for chunk {}\n".format(index))
+            index += 1
             sw, response = self.transport.exchange_apdu_raw(chunk)
             print("\n", "ledger_resp:", sw, response)
 
             if sw != 0x9000:
                 raise DeviceException(error_code=sw, ins=InsType.INS_SIGN_TX)
 
+        time.sleep(0.1)
+
+        index = 0
         # ask for signatures
         for chunk in self.builder.sign_tx_signatures(transaction):
+            print("[+] sending: sign_tx sign for chunk {}\n".format(index))
+            index += 1
             sw, response = self.transport.exchange_apdu_raw(chunk)
             print("\n", "ledger_resp:", sw, response)
 
@@ -136,6 +150,7 @@ class Command:
         return signatures
 
     def sign_token_data(self, token: Token) -> bytes:
+        print("[+] sending: sign_token_data request")
         sw, response = self.transport.exchange_apdu_raw(
             self.builder.sign_token_data(token)
         )
@@ -146,6 +161,7 @@ class Command:
         return response
 
     def send_token_data(self, token: Token, signature: bytes, num: int = 0):
+        print("[+] sending: send_token_data request")
         sw, response = self.transport.exchange_apdu_raw(
             self.builder.send_token_data(token, signature, num=num)
         )
@@ -156,9 +172,15 @@ class Command:
     def send_token_data_list(self, tokens: List[Token], signatures: List[bytes]):
         assert len(tokens) == len(signatures)
         for i, token in enumerate(tokens):
+            print(
+                "[+] sending: send_token_data_list request for token {} - {}".format(
+                    i, token
+                )
+            )
             self.send_token_data(token, signatures[i], num=i)
 
     def verify_token_signature(self, token: Token, signature: bytes):
+        print("[+] sending: verify_token_signature request")
         sw, response = self.transport.exchange_apdu_raw(
             self.builder.verify_token_signature(token, signature)
         )
@@ -167,6 +189,7 @@ class Command:
             raise DeviceException(error_code=sw, ins=InsType.INS_GET_ADDRESS)
 
     def reset_token_signatures(self):
+        print("[+] sending: reset_token_signatures request")
         sw, response = self.transport.exchange_apdu_raw(
             self.builder.reset_token_signatures()
         )

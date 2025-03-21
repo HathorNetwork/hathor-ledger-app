@@ -11,18 +11,40 @@ poetry install
 make install
 ```
 
-### Launch with Speculos
+### Run with Speculos
 
-First start your application with Speculos
+First you need to build and run the application with speculos.
 
+On the root directory of the project run:
+
+```bash
+make -f .dev.Makefile build DEBUG=1
 ```
-./path/to/speculos.py /path/to/app.elf --ontop --sdk 2.0
+
+```bash
+make -f .dev.Makefile speculos
 ```
 
-then in the `tests` folder run
+### Running tests
 
-```
-poetry run pytest
-# or
+In the `tests` folder run:
+
+```bash
 make test
+# or
+poetry run pytest
 ```
+
+### Running qa
+
+You need to open the speculos web ui, the actual address will be shown in the speculos stdout.
+
+In the `tests` folder run:
+
+```bash
+make qa
+# or
+poetry run pytest qa.py
+```
+
+Obs: you need to restart speculos if the tests ran before since they configure automation rules which need to be turned off during qa.

@@ -45,5 +45,6 @@ int8_t find_token_registry_index(uint8_t *uid) {
     for (uint8_t i = 0; i < G_token_symbols.len; i++) {
         if (memcmp(uid, G_token_symbols.tokens[i].uid, TOKEN_UID_LEN) == 0) return i;
     }
+    PRINTF("[*] Registry length = %d\n", G_token_symbols.len);
     return -1;
 }
