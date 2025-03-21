@@ -123,6 +123,8 @@ typedef struct {
     // tokens is an array of ptrs to save memory since these tokens are already on a global ctx
     token_symbol_t* tokens[TX_MAX_TOKENS];
     uint8_t tokens_len;
+    data_script_t output_datas[TX_MAX_DATA_OUTPUTS];
+    uint8_t output_datas_len;
 } sign_tx_ctx_t;
 
 typedef struct {
@@ -134,11 +136,9 @@ typedef struct {
  * Structure for global context.
  */
 typedef struct {
-    state_e state;  /// state of the context
-    union {
-        xpub_ctx_t pk_info;     /// public key context
-        sign_tx_ctx_t tx_info;  /// transaction context
-    };
+    state_e state;            /// state of the context
+    xpub_ctx_t pk_info;       /// public key context
+    sign_tx_ctx_t tx_info;    /// transaction context
     request_type_e req_type;  /// user request
     bip32_path_t bip32_path;
     token_t token;

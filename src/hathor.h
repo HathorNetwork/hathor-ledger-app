@@ -58,6 +58,28 @@ int hash160(uint8_t *in, size_t inlen, uint8_t *out, size_t outlen);
 int address_from_pubkey(cx_ecfp_public_key_t *public_key, uint8_t *out, size_t outlen);
 
 /**
+ * Convert script hash160 to address.
+ *
+ * address = version byte + script_hash + first 4 bytes of sha256d(hash)
+ *
+ * @param[in]  script_hash
+ *   Script hash160
+ *   An array of at least 20 bytes (uint8_t).
+ * @param[in]  script_hash_len
+ *   Length of script_hash buffer
+ * @param[out] out
+ *   Pointer to output byte buffer for address.
+ * @param[in]  outlen
+ *   Length of output byte buffer.
+ * @return 0 on success
+ *
+ */
+int address_from_script_hash(const uint8_t *script_hash,
+                             size_t script_hash_len,
+                             uint8_t *out,
+                             size_t outlen);
+
+/**
  * Convert public key hash160 to address.
  *
  * address = version byte + pubkey_hash + first 4 bytes of sha256d(hash)

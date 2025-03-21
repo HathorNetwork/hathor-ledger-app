@@ -22,6 +22,14 @@
 #include "../token/types.h"
 
 /**
+ * Helper to clean global context of any sign data
+ */
+void clean_globals() {
+    explicit_bzero(&G_context, sizeof(G_context));
+    explicit_bzero(&G_token_symbols, sizeof(G_token_symbols));
+}
+
+/**
  * Verify that the given output address (pubkey hash) is ours and
  * may be generated from by deriving on the given bip32 path
  **/
@@ -32,7 +40,7 @@ bool verify_change(change_output_info_t *info, tx_output_t output) {
     uint8_t chain_code[32];
     int error = 0;
 
-    if (info == NULL) {
+    if ((info == NULL) || (output.script.type != SCRIPT_P2PKH)) {
         return false;
     }
 
@@ -51,7 +59,7 @@ end:
     }
 
     // 0 means equals
-    return memcmp(hash, output.pubkey_hash, PUBKEY_HASH_LEN) == 0;
+    return memcmp(hash, output.script.hash, PUBKEY_HASH_LEN) == 0;
 }
 
 /**
@@ -518,7 +526,7 @@ bool receive_data(buffer_t *cdata, uint8_t chunk) {
     if (chunk == 0) {
         if (G_context.state == STATE_RECV_DATA) {
             // sent first chunk twice? return error
-            explicit_bzero(&G_context, sizeof(G_context));
+            clean_globals();
             THROW(SW_BAD_STATE);
         }
 
@@ -561,7 +569,7 @@ bool receive_data(buffer_t *cdata, uint8_t chunk) {
 
     switch (decode_elements()) {
         case TX_STATE_ERR:
-            explicit_bzero(&G_context, sizeof(G_context));
+            clean_globals();
             io_send_sw(SW_INVALID_TX);
             ui_menu_main();
             return true;
@@ -592,7 +600,7 @@ int handler_sign_tx(buffer_t *cdata, sing_tx_stage_e stage, uint8_t chunk) {
     switch (stage) {
         case SIGN_TX_STAGE_DONE:
             // Caller is done with this request, cleanup and return SW_OK.
-            explicit_bzero(&G_context, sizeof(G_context));
+            clean_globals();
             G_context.state = STATE_NONE;
             ui_menu_main();
             return io_send_sw(SW_OK);
@@ -616,14 +624,14 @@ int handler_sign_tx(buffer_t *cdata, sing_tx_stage_e stage, uint8_t chunk) {
             // Caller will pass the transaction and metadata needed to approve and sign.
             if (G_context.state == STATE_APPROVED) {
                 // cannot receive more data after user approval
-                explicit_bzero(&G_context, sizeof(G_context));
+                clean_globals();
                 ui_menu_main();
                 return io_send_sw(SW_BAD_STATE);
             }
             if (chunk > 0 && G_context.state != STATE_RECV_DATA) {
                 // Some stage before this failed but caller sent data anyway
                 // reject with SW_BAD_STATE
-                explicit_bzero(&G_context, sizeof(G_context));
+                clean_globals();
                 ui_menu_main();
                 return io_send_sw(SW_BAD_STATE);
             }
@@ -631,7 +639,7 @@ int handler_sign_tx(buffer_t *cdata, sing_tx_stage_e stage, uint8_t chunk) {
             break;
 
         default:
-            explicit_bzero(&G_context, sizeof(G_context));
+            clean_globals();
             ui_menu_main();
             return io_send_sw(SW_BAD_STATE);
     }
